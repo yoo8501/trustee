@@ -4,7 +4,7 @@
 ```
 trustee/
 ├── apps/
-│   └── web/                  # @trustee/web - Next.js 14 앱
+│   └── web/                  # @trustee/web - Next.js 15 앱
 │       ├── src/
 │       │   ├── app/          # App Router 페이지
 │       │   │   ├── (dashboard)/     # 대시보드 레이아웃 그룹

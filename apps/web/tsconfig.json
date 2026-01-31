@@ -3,14 +3,34 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@trustee/ui": ["../../packages/ui/src"],
-      "@trustee/ui/*": ["../../packages/ui/src/*"],
-      "@trustee/types": ["../../packages/types/src"],
-      "@trustee/database": ["../../packages/database/src"],
-      "@trustee/database/*": ["../../packages/database/src/*"]
-    }
+      "@/*": [
+        "./src/*"
+      ],
+      "@trustee/ui": [
+        "../../packages/ui/src"
+      ],
+      "@trustee/ui/*": [
+        "../../packages/ui/src/*"
+      ],
+      "@trustee/types": [
+        "../../packages/types/src"
+      ],
+      "@trustee/database": [
+        "../../packages/database/src"
+      ],
+      "@trustee/database/*": [
+        "../../packages/database/src/*"
+      ]
+    },
+    "target": "ES2017"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
