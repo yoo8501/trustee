@@ -1,0 +1,16 @@
+{
+  "extends": "@trustee/config/typescript/nextjs",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@trustee/ui": ["../../packages/ui/src"],
+      "@trustee/ui/*": ["../../packages/ui/src/*"],
+      "@trustee/types": ["../../packages/types/src"],
+      "@trustee/database": ["../../packages/database/src"],
+      "@trustee/database/*": ["../../packages/database/src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

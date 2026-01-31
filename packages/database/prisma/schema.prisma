@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 수탁사 상태
+enum TrusteeStatus {
+  active
+  inactive
+  pending
+}
+
+// 점검 상태
+enum InspectionStatus {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+
+// 점검 결과
+enum InspectionResult {
+  pass
+  fail
+  partial
+  not_applicable
+}
+
+// 수탁사
+model Trustee {
+  id              String        @id @default(cuid())
+  companyName     String        @map("company_name")
+  businessNumber  String        @unique @map("business_number")
+  representative  String
+  contactName     String        @map("contact_name")
+  contactPhone    String        @map("contact_phone")
+  contactEmail    String        @map("contact_email")
+  delegatedTasks  String        @map("delegated_tasks") @db.Text
+  status          TrusteeStatus @default(pending)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  contracts   Contract[]
+  inspections Inspection[]
+
+  @@map("trustees")
+}
+
+// 계약
+model Contract {
+  id        String   @id @default(cuid())
+  trusteeId String   @map("trustee_id")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  fileUrl   String?  @map("file_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  trustee Trustee @relation(fields: [trusteeId], references: [id], onDelete: Cascade)
+
+  @@map("contracts")
+}
+
+// 점검
+model Inspection {
+  id             String           @id @default(cuid())
+  trusteeId      String           @map("trustee_id")
+  inspectionDate DateTime         @map("inspection_date")
+  score          Int?
+  status         InspectionStatus @default(scheduled)
+  findings       String?          @db.Text
+  improvements   String?          @db.Text
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  trustee Trustee          @relation(fields: [trusteeId], references: [id], onDelete: Cascade)
+  items   InspectionItem[]
+
+  @@map("inspections")
+}
+
+// 점검 항목
+model InspectionItem {
+  id           String           @id @default(cuid())
+  inspectionId String           @map("inspection_id")
+  category     String
+  question     String           @db.Text
+  result       InspectionResult
+  note         String?          @db.Text
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  inspection Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  @@map("inspection_items")
+}

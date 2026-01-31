@@ -1,0 +1,27 @@
+{
+  "name": "@trustee/config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./eslint/base.js",
+  "exports": {
+    "./typescript/base": "./typescript/base.json",
+    "./typescript/nextjs": "./typescript/nextjs.json",
+    "./typescript/library": "./typescript/library.json",
+    "./eslint/base": "./eslint/base.js",
+    "./eslint/next": "./eslint/next.js",
+    "./tailwind": "./tailwind/tailwind.config.ts",
+    "./postcss": "./postcss/postcss.config.js"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.7.3"
+  }
+}

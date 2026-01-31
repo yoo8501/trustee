@@ -1,0 +1,20 @@
+{
+  "name": "trustee-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm --filter @trustee/web dev",
+    "build": "pnpm --filter @trustee/web build",
+    "start": "pnpm --filter @trustee/web start",
+    "lint": "pnpm -r lint",
+    "type-check": "pnpm -r type-check",
+    "db:generate": "pnpm --filter @trustee/database generate",
+    "db:push": "pnpm --filter @trustee/database push",
+    "db:studio": "pnpm --filter @trustee/database studio",
+    "clean": "pnpm -r exec rm -rf node_modules dist .next .turbo && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
