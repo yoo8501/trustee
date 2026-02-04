@@ -7,6 +7,7 @@
     "./typescript/base": "./typescript/base.json",
     "./typescript/nextjs": "./typescript/nextjs.json",
     "./typescript/library": "./typescript/library.json",
+    "./typescript/service": "./typescript/service.json",
     "./eslint/base": "./eslint/base.js",
     "./eslint/next": "./eslint/next.js",
     "./tailwind": "./tailwind/tailwind.config.ts",

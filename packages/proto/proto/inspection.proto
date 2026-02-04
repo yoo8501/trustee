@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package inspection;
+
+service InspectionService {
+  rpc GetInspectionsByTrustee (GetInspectionsByTrusteeRequest) returns (InspectionListResponse);
+  rpc GetLatestInspection (GetLatestInspectionRequest) returns (InspectionResponse);
+}
+
+message GetInspectionsByTrusteeRequest {
+  string trustee_id = 1;
+}
+
+message GetLatestInspectionRequest {
+  string trustee_id = 1;
+}
+
+message InspectionResponse {
+  string id = 1;
+  string trustee_id = 2;
+  string inspection_date = 3;
+  int32 score = 4;
+  string status = 5;
+  string findings = 6;
+  string improvements = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+message InspectionListResponse {
+  repeated InspectionResponse inspections = 1;
+}

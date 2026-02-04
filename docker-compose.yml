@@ -1,0 +1,103 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: trustee-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: trustee
+      MYSQL_PASSWORD: trusteepassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: --default-authentication-plugin=caching_sha2_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: trustee-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: trustee
+      RABBITMQ_DEFAULT_PASS: trusteepassword
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  trustee-service:
+    build:
+      context: .
+      dockerfile: services/trustee/Dockerfile
+    container_name: trustee-service
+    environment:
+      DATABASE_URL: "mysql://trustee:trusteepassword@mysql:3306/trustee_db"
+      RABBITMQ_URL: "amqp://trustee:trusteepassword@rabbitmq:5672"
+      HTTP_PORT: "4001"
+      GRPC_PORT: "5001"
+      NODE_ENV: production
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  inspection-service:
+    build:
+      context: .
+      dockerfile: services/inspection/Dockerfile
+    container_name: inspection-service
+    environment:
+      DATABASE_URL: "mysql://trustee:trusteepassword@mysql:3306/inspection_db"
+      RABBITMQ_URL: "amqp://trustee:trusteepassword@rabbitmq:5672"
+      TRUSTEE_GRPC_ADDRESS: "trustee-service:5001"
+      HTTP_PORT: "4002"
+      GRPC_PORT: "5002"
+      NODE_ENV: production
+    ports:
+      - "4002:4002"
+      - "5002:5002"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      trustee-service:
+        condition: service_started
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    container_name: trustee-gateway
+    environment:
+      PORT: "3001"
+      TRUSTEE_SERVICE_URL: "http://trustee-service:4001"
+      INSPECTION_SERVICE_URL: "http://inspection-service:4002"
+      TRUSTEE_GRPC_ADDRESS: "trustee-service:5001"
+      INSPECTION_GRPC_ADDRESS: "inspection-service:5002"
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+    depends_on:
+      - trustee-service
+      - inspection-service
+
+volumes:
+  mysql_data:
+  rabbitmq_data:

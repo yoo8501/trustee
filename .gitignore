@@ -48,6 +48,7 @@ next-env.d.ts
 # prisma
 packages/database/prisma/*.db
 packages/database/prisma/*.db-journal
+**/src/generated/prisma
 
 # pnpm (lock file은 버전 관리에 포함)
 
