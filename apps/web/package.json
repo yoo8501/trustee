@@ -18,7 +18,6 @@
     "@mui/material": "^6.4.3",
     "@mui/material-nextjs": "^6.4.3",
     "@tanstack/react-query": "^5.66.1",
-    "@trustee/database": "workspace:*",
     "@trustee/types": "workspace:*",
     "@trustee/ui": "workspace:*",
     "next": "^15.1.0",

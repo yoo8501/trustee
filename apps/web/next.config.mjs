@@ -3,7 +3,6 @@ const nextConfig = {
   transpilePackages: [
     "@trustee/ui",
     "@trustee/types",
-    "@trustee/database",
   ],
   images: {
     remotePatterns: [
