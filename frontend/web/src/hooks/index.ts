@@ -1,3 +1,5 @@
+export { useAuth } from "./useAuth";
+
 export {
   useTrustees,
   useTrustee,

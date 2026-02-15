@@ -15,7 +15,10 @@ const app = express();
 
 // 기본 미들웨어
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  credentials: true,
+}));
 app.use(express.json());
 
 // Rate limiter
@@ -43,11 +46,9 @@ app.get("/health", (_req, res) => {
 // 집계 엔드포인트 (프록시 전에 등록)
 app.use("/api/aggregate", createAggregateRoutes());
 
-// 프록시 라우팅
-app.use("/api/trustees", trusteeProxy);
-app.use("/api/contracts", trusteeProxy);
-app.use("/api/inspections", inspectionProxy);
-app.use("/api/inspection-items", inspectionProxy);
+// 프록시 라우팅 (pathFilter로 경로 매칭)
+app.use(trusteeProxy);
+app.use(inspectionProxy);
 
 // Error handler
 app.use(errorHandler);
