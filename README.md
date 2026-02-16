@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 수탁사 관리 시스템
 
-## Getting Started
+개인정보 처리 업무를 위탁받은 수탁사를 관리하는 시스템입니다.
 
-First, run the development server:
+## 기술 스택
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| 영역 | 기술 |
+|------|------|
+| 프론트엔드 | Next.js 15 (App Router), TypeScript, MUI, Tailwind CSS |
+| 상태관리 | React Query (TanStack Query) |
+| 폼 관리 | React Hook Form + Zod |
+| 백엔드 | Express 5, TypeScript |
+| 데이터베이스 | MySQL 8.0, Prisma ORM |
+| 서비스 간 통신 | gRPC (동기), RabbitMQ (비동기) |
+| 인프라 | Docker, Docker Compose |
+| 패키지 매니저 | pnpm (workspaces) |
+
+## 프로젝트 구조
+
+```
+trustee/
+├── frontend/                 # 프론트엔드
+│   ├── web/                  # Next.js 앱
+│   └── packages/
+│       └── ui/               # 공유 UI 컴포넌트
+│
+├── backend/                  # 백엔드
+│   ├── services/
+│   │   ├── gateway/          # API Gateway (:3001)
+│   │   ├── trustee/          # 수탁사 서비스 (HTTP:4001, gRPC:5001)
+│   │   └── inspection/       # 점검 서비스 (HTTP:4002, gRPC:5002)
+│   └── packages/
+│       ├── common/           # 공유 유틸리티
+│       ├── config/           # 공유 설정 (TS/ESLint/Tailwind)
+│       ├── database/         # Prisma
+│       ├── proto/            # gRPC proto 파일
+│       └── types/            # 공유 타입
+│
+├── infra/                    # 인프라
+│   ├── docker/               # DB 초기화 스크립트
+│   ├── docker-compose.yml    # 프로덕션
+│   └── docker-compose.dev.yml # 개발 (MySQL, RabbitMQ)
+│
+└── docs/                     # 문서
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 시작하기
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 사전 요구사항
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Node.js 20+
+- pnpm 9+
+- Docker (MySQL, RabbitMQ 실행용)
 
-## Learn More
+### 설치 및 실행
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# 의존성 설치
+pnpm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 인프라 실행 (MySQL, RabbitMQ)
+pnpm infra:up
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 프론트엔드 개발 서버
+pnpm dev
 
-## Deploy on Vercel
+# 백엔드 서비스 개발 서버
+pnpm dev:services
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# 전체 개발 서버 (프론트 + 백엔드)
+pnpm dev:all
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+브라우저에서 [http://localhost:3000](http://localhost:3000)으로 접속합니다.
+
+### 주요 명령어
+
+```bash
+# 타입 검사
+pnpm -r type-check
+
+# 린트
+pnpm -r lint
+
+# 프로덕션 빌드
+pnpm build
+
+# Prisma 클라이언트 생성
+pnpm db:generate
+
+# Docker 전체 실행 (프로덕션)
+pnpm docker:up
+
+# 인프라 종료
+pnpm infra:down
+```
+
+## 아키텍처
+
+```
+브라우저 → Next.js (프론트엔드) → API Gateway (:3001)
+                                        │
+                               ┌────────┴────────┐
+                               │                  │
+                     수탁사 서비스          점검 서비스
+                    (HTTP:4001)          (HTTP:4002)
+                               │                  │
+                          trustee_db         inspection_db
+```
+
+- 외부 통신: REST API (Gateway - 프론트엔드)
+- 내부 동기 통신: gRPC (서비스 간 데이터 조회)
+- 내부 비동기 통신: RabbitMQ (이벤트 기반 처리)

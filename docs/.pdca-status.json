@@ -1,0 +1,67 @@
+{
+  "version": "2.0",
+  "lastUpdated": "2026-02-15T17:21:57.700Z",
+  "activeFeatures": [
+    "login",
+    "gateway"
+  ],
+  "primaryFeature": "login",
+  "features": {
+    "login": {
+      "phase": "do",
+      "matchRate": null,
+      "iterationCount": 0,
+      "startedAt": "2026-02-16T00:00:00.000Z",
+      "documents": {
+        "plan": "docs/01-plan/features/login.plan.md",
+        "design": "docs/02-design/features/login.design.md"
+      }
+    },
+    "gateway": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-15T17:21:57.700Z",
+        "lastUpdated": "2026-02-15T17:21:57.700Z"
+      },
+      "lastFile": "/Users/seosangjun/trustee/backend/services/gateway/src/index.ts"
+    }
+  },
+  "pipeline": {
+    "currentPhase": 1,
+    "level": "Dynamic",
+    "phaseHistory": []
+  },
+  "session": {
+    "startedAt": "2026-02-15T17:06:35.484Z",
+    "onboardingCompleted": false,
+    "lastActivity": "2026-02-15T17:21:57.700Z"
+  },
+  "history": [
+    {
+      "action": "plan_created",
+      "feature": "login",
+      "timestamp": "2026-02-16T00:00:00.000Z"
+    },
+    {
+      "action": "design_created",
+      "feature": "login",
+      "timestamp": "2026-02-16T00:01:00.000Z"
+    },
+    {
+      "action": "do_completed",
+      "feature": "login",
+      "timestamp": "2026-02-16T00:02:00.000Z"
+    },
+    {
+      "timestamp": "2026-02-15T17:21:57.700Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    }
+  ]
+}

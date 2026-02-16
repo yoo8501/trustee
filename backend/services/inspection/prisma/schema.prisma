@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum InspectionStatus {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+
+enum InspectionResult {
+  pass
+  fail
+  partial
+  not_applicable
+}
+
+model Inspection {
+  id             String           @id @default(cuid())
+  trusteeId      String           @map("trustee_id")
+  inspectionDate DateTime         @map("inspection_date")
+  score          Int?
+  status         InspectionStatus @default(scheduled)
+  findings       String?          @db.Text
+  improvements   String?          @db.Text
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  items InspectionItem[]
+
+  @@map("inspections")
+}
+
+model InspectionItem {
+  id           String           @id @default(cuid())
+  inspectionId String           @map("inspection_id")
+  category     String
+  question     String           @db.Text
+  result       InspectionResult
+  note         String?          @db.Text
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  inspection Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  @@map("inspection_items")
+}

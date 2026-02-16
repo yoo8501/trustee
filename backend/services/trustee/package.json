@@ -1,0 +1,36 @@
+{
+  "name": "@trustee/trustee-service",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.3.1",
+    "@trustee/common": "workspace:*",
+    "@trustee/proto": "workspace:*",
+    "@trustee/types": "workspace:*",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "helmet": "^8.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@trustee/config": "workspace:*",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^20",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "eslint": "^8.57.0",
+    "prisma": "^6.3.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.3"
+  }
+}

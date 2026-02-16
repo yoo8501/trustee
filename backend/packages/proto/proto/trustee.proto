@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package trustee;
+
+service TrusteeService {
+  rpc GetTrustee (GetTrusteeRequest) returns (TrusteeResponse);
+  rpc ValidateTrusteeExists (ValidateTrusteeExistsRequest) returns (ValidateTrusteeExistsResponse);
+}
+
+message GetTrusteeRequest {
+  string id = 1;
+}
+
+message TrusteeResponse {
+  string id = 1;
+  string company_name = 2;
+  string business_number = 3;
+  string representative = 4;
+  string contact_name = 5;
+  string contact_phone = 6;
+  string contact_email = 7;
+  string delegated_tasks = 8;
+  string status = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message ValidateTrusteeExistsRequest {
+  string id = 1;
+}
+
+message ValidateTrusteeExistsResponse {
+  bool exists = 1;
+  string company_name = 2;
+}

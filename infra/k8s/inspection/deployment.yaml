@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inspection-service
+  labels:
+    app: inspection-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inspection-service
+  template:
+    metadata:
+      labels:
+        app: inspection-service
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z mysql 3306; do
+                echo "Waiting for MySQL..."
+                sleep 3
+              done
+              echo "MySQL is ready"
+        - name: wait-for-trustee
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z trustee-service 4001; do
+                echo "Waiting for trustee-service..."
+                sleep 3
+              done
+              echo "trustee-service is ready"
+      containers:
+        - name: inspection-service
+          image: inspection-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 4002
+            - name: grpc
+              containerPort: 5002
+          env:
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: trustee-secrets
+                  key: mysql-password
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: trustee-secrets
+                  key: rabbitmq-password
+            - name: DATABASE_URL
+              value: "mysql://trustee:$(MYSQL_PASSWORD)@mysql:3306/inspection_db"
+            - name: RABBITMQ_URL
+              value: "amqp://trustee:$(RABBITMQ_PASSWORD)@rabbitmq:5672"
+            - name: TRUSTEE_GRPC_ADDRESS
+              value: "trustee-service:5001"
+            - name: HTTP_PORT
+              value: "4002"
+            - name: GRPC_PORT
+              value: "5002"
+            - name: NODE_ENV
+              value: production
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

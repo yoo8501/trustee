@@ -19,5 +19,8 @@
 - [ ] 코드 리뷰 완료
 
 ## 참조 문서
-@docs/ARCHITECTURE.md
-@docs/CONVENTIONS.md
+@docs/architecture/ARCHITECTURE.md
+@docs/guides/CONVENTIONS.md
+
+##주의
+질문과 답변은 한글로 해라
