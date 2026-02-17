@@ -4,8 +4,9 @@ import MuiDialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import IconButton from "@mui/material/IconButton";
+import MuiIconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import Typography from "@mui/material/Typography";
 import { ReactNode } from "react";
 
 export interface DialogProps {
@@ -28,24 +29,53 @@ export function Dialog({
   fullWidth = true,
 }: DialogProps) {
   return (
-    <MuiDialog open={open} onClose={onClose} maxWidth={maxWidth} fullWidth={fullWidth}>
-      <DialogTitle sx={{ m: 0, p: 2 }}>
-        {title}
-        <IconButton
+    <MuiDialog
+      open={open}
+      onClose={onClose}
+      maxWidth={maxWidth}
+      fullWidth={fullWidth}
+      slotProps={{
+        backdrop: {
+          sx: { backgroundColor: "#000000d9" },
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          py: 1.5,
+          px: 2.5,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <Typography variant="h5" component="span">
+          {title}
+        </Typography>
+        <MuiIconButton
           aria-label="close"
           onClick={onClose}
+          size="small"
+          sx={{ ml: 1 }}
+        >
+          <CloseIcon fontSize="small" />
+        </MuiIconButton>
+      </DialogTitle>
+      <DialogContent sx={{ py: 2.5, px: 2.5 }}>{children}</DialogContent>
+      {actions && (
+        <DialogActions
           sx={{
-            position: "absolute",
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500],
+            px: 2.5,
+            py: 1.5,
+            borderTop: "1px solid",
+            borderColor: "divider",
           }}
         >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent dividers>{children}</DialogContent>
-      {actions && <DialogActions>{actions}</DialogActions>}
+          {actions}
+        </DialogActions>
+      )}
     </MuiDialog>
   );
 }

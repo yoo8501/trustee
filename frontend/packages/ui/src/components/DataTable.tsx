@@ -1,6 +1,6 @@
 "use client";
 
-import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -8,6 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TablePagination from "@mui/material/TablePagination";
+import Typography from "@mui/material/Typography";
 import { ReactNode } from "react";
 
 export interface Column<T> {
@@ -45,15 +46,58 @@ export function DataTable<T>({
     onPageChange?.(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     onRowsPerPageChange?.(parseInt(event.target.value, 10));
     onPageChange?.(0);
   };
 
+  if (rows.length === 0) {
+    return (
+      <Box
+        sx={{
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: 1.5,
+          overflow: "hidden",
+        }}
+      >
+        <Table>
+          <TableHead>
+            <TableRow>
+              {columns.map((column) => (
+                <TableCell
+                  key={String(column.id)}
+                  align={column.align}
+                  style={{ minWidth: column.minWidth }}
+                >
+                  {column.label}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+        </Table>
+        <Box sx={{ py: 6, textAlign: "center" }}>
+          <Typography variant="body2" color="text.secondary">
+            데이터가 없습니다
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden" }}>
+    <Box
+      sx={{
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 1.5,
+        overflow: "hidden",
+      }}
+    >
       <TableContainer>
-        <Table stickyHeader>
+        <Table>
           <TableHead>
             <TableRow>
               {columns.map((column) => (
@@ -73,7 +117,10 @@ export function DataTable<T>({
                 hover
                 key={getRowKey(row)}
                 onClick={() => onRowClick?.(row)}
-                sx={{ cursor: onRowClick ? "pointer" : "default" }}
+                sx={{
+                  cursor: onRowClick ? "pointer" : "default",
+                  "&:last-child td": { borderBottom: 0 },
+                }}
               >
                 {columns.map((column) => (
                   <TableCell key={String(column.id)} align={column.align}>
@@ -96,9 +143,9 @@ export function DataTable<T>({
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="페이지당 행 수"
+          labelRowsPerPage="행 수"
         />
       )}
-    </Paper>
+    </Box>
   );
 }
