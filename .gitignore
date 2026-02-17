@@ -52,8 +52,21 @@ backend/packages/database/prisma/*.db-journal
 
 # pnpm (lock file은 버전 관리에 포함)
 
+# e2e test results
+docs/test-results/
+
 # IDE
 .idea
 .vscode
 *.swp
 *.swo
+
+# bkit
+.bkit/
+
+# playwright MCP
+.playwright-mcp/
+
+# screenshots
+*.png
+*.jpeg
