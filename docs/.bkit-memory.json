@@ -1,0 +1,17 @@
+{
+  "sessionCount": 12,
+  "lastSession": {
+    "startedAt": "2026-02-17T17:12:31.852Z",
+    "platform": "claude",
+    "level": "Dynamic"
+  },
+  "features": {
+    "design-system": {
+      "phase": "completed",
+      "matchRate": 96,
+      "iterationCount": 0,
+      "startedAt": "2026-02-17T02:24:00.000Z",
+      "completedAt": "2026-02-17T02:40:00.000Z"
+    }
+  }
+}

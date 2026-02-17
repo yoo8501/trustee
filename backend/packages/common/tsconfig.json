@@ -1,0 +1,8 @@
+{
+  "extends": "@trustee/config/typescript/library",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src"]
+}

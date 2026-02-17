@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum TrusteeStatus {
+  active
+  inactive
+  pending
+}
+
+model Trustee {
+  id              String        @id @default(cuid())
+  companyName     String        @map("company_name")
+  businessNumber  String        @unique @map("business_number")
+  representative  String
+  contactName     String        @map("contact_name")
+  contactPhone    String        @map("contact_phone")
+  contactEmail    String        @map("contact_email")
+  delegatedTasks  String        @map("delegated_tasks") @db.Text
+  status          TrusteeStatus @default(pending)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  contracts Contract[]
+
+  @@map("trustees")
+}
+
+model Contract {
+  id        String   @id @default(cuid())
+  trusteeId String   @map("trustee_id")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  fileUrl   String?  @map("file_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  trustee Trustee @relation(fields: [trusteeId], references: [id], onDelete: Cascade)
+
+  @@map("contracts")
+}
