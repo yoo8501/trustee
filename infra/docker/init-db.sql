@@ -3,8 +3,10 @@
 
 CREATE DATABASE IF NOT EXISTS trustee_db;
 CREATE DATABASE IF NOT EXISTS inspection_db;
+CREATE DATABASE IF NOT EXISTS auth_db;
 
 -- 사용자 권한 부여
 GRANT ALL PRIVILEGES ON trustee_db.* TO 'trustee'@'%';
 GRANT ALL PRIVILEGES ON inspection_db.* TO 'trustee'@'%';
+GRANT ALL PRIVILEGES ON auth_db.* TO 'trustee'@'%';
 FLUSH PRIVILEGES;

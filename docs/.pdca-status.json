@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-16T17:58:48.142Z",
+  "lastUpdated": "2026-02-17T17:53:15.088Z",
   "activeFeatures": [
     "login-design-system",
     "login",
@@ -13,7 +13,9 @@
     "signup",
     "forgot-password",
     "reset-password",
-    "login-design-system - Match Rate 97.7%"
+    "login-design-system - Match Rate 97.7%",
+    "middleware",
+    "(dashboard)"
   ],
   "primaryFeature": "login-design-system",
   "features": {
@@ -54,7 +56,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-15T17:21:57.700Z",
-        "lastUpdated": "2026-02-15T17:21:57.700Z"
+        "lastUpdated": "2026-02-17T17:26:47.611Z"
       },
       "lastFile": "/Users/seosangjun/trustee/backend/services/gateway/src/index.ts"
     },
@@ -67,7 +69,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T17:25:20.145Z",
-        "lastUpdated": "2026-02-16T17:34:18.013Z"
+        "lastUpdated": "2026-02-17T17:50:41.293Z"
       },
       "lastFile": "/Users/seosangjun/trustee/frontend/packages/ui/src/index.ts"
     },
@@ -93,9 +95,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T17:29:42.180Z",
-        "lastUpdated": "2026-02-16T17:29:42.180Z"
+        "lastUpdated": "2026-02-17T17:53:15.088Z"
       },
-      "lastFile": "/Users/seosangjun/trustee/frontend/web/src/middleware.ts"
+      "lastFile": "/Users/seosangjun/trustee/frontend/web/src/app/layout.tsx"
     },
     "(auth)": {
       "phase": "do",
@@ -175,6 +177,32 @@
       },
       "previousPhase": "check",
       "autoAdvanced": true
+    },
+    "middleware": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-17T17:30:01.757Z",
+        "lastUpdated": "2026-02-17T17:30:01.757Z"
+      },
+      "lastFile": "/Users/seosangjun/trustee/backend/packages/common/src/middleware/error-handler.ts"
+    },
+    "(dashboard)": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-17T17:51:09.421Z",
+        "lastUpdated": "2026-02-17T17:52:06.039Z"
+      },
+      "lastFile": "/Users/seosangjun/trustee/frontend/web/src/app/(dashboard)/page.tsx"
     }
   },
   "pipeline": {
@@ -185,7 +213,7 @@
   "session": {
     "startedAt": "2026-02-15T17:06:35.484Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-16T17:58:48.142Z"
+    "lastActivity": "2026-02-17T17:53:15.088Z"
   },
   "history": [
     {
@@ -393,6 +421,138 @@
       "timestamp": "2026-02-16T17:58:48.142Z",
       "feature": "login-design-system - Match Rate 97.7%",
       "phase": "act",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:24:54.814Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:25:31.524Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:25:36.599Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:25:50.025Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:26:01.249Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:26:06.651Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:26:10.782Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:26:22.346Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:26:31.790Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:26:47.611Z",
+      "feature": "gateway",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:30:01.757Z",
+      "feature": "middleware",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:50:09.057Z",
+      "feature": "ui",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:50:19.905Z",
+      "feature": "ui",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:50:24.159Z",
+      "feature": "ui",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:50:30.269Z",
+      "feature": "ui",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:50:41.293Z",
+      "feature": "ui",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:51:09.421Z",
+      "feature": "(dashboard)",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:51:18.156Z",
+      "feature": "(dashboard)",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:52:06.039Z",
+      "feature": "(dashboard)",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:53:07.575Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:53:11.666Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-17T17:53:15.088Z",
+      "feature": "web",
+      "phase": "do",
       "action": "updated"
     }
   ]

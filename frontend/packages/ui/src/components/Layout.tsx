@@ -27,6 +27,7 @@ export interface LayoutProps {
   navItems?: NavItem[];
   onNavigate?: (href: string) => void;
   currentPath?: string;
+  header?: ReactNode;
 }
 
 export function Layout({
@@ -35,6 +36,7 @@ export function Layout({
   navItems = [],
   onNavigate,
   currentPath,
+  header,
 }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -181,15 +183,19 @@ export function Layout({
 
       {/* Main content */}
       <Box
-        component="main"
         sx={{
           flexGrow: 1,
           minHeight: "100vh",
           ml: { sm: `${SIDEBAR_WIDTH}px` },
           backgroundColor: colors.bg.primary,
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        {children}
+        {header}
+        <Box component="main" sx={{ flex: 1 }}>
+          {children}
+        </Box>
       </Box>
     </Box>
   );
