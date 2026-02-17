@@ -5,6 +5,7 @@ const PUBLIC_PATHS = [
   "/signup",
   "/forgot-password",
   "/reset-password",
+  "/design-system",
 ];
 
 export function middleware(request: NextRequest) {
