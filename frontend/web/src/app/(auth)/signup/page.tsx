@@ -3,12 +3,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
-import MuiLink from "@mui/material/Link";
 import NextLink from "next/link";
-import { Button, Form, FormTextField } from "@trustee/ui";
+import { Box, Typography, Alert, Link, Button, Form, FormTextField, colors } from "@trustee/ui";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { useAuth } from "@/hooks";
 import { signupSchema, type SignupFormData } from "@/lib/validations/auth";
@@ -40,14 +36,13 @@ export default function SignupPage() {
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight={700} textAlign="center" gutterBottom>
+      <Typography variant="h3" textAlign="center" sx={{ mb: 0.5 }}>
         회원가입
       </Typography>
       <Typography
         variant="body2"
-        color="text.secondary"
         textAlign="center"
-        sx={{ mb: 3 }}
+        sx={{ color: colors.fg.tertiary, mb: 3 }}
       >
         수탁사 관리 시스템에 가입하세요
       </Typography>
@@ -94,8 +89,9 @@ export default function SignupPage() {
           type="submit"
           variant="contained"
           fullWidth
+          size="large"
           loading={isSubmitting}
-          sx={{ mt: 2, mb: 2, py: 1.2 }}
+          sx={{ mt: 2, mb: 2 }}
         >
           회원가입
         </Button>
@@ -103,9 +99,14 @@ export default function SignupPage() {
 
       <Typography variant="body2" textAlign="center">
         이미 계정이 있으신가요?{" "}
-        <MuiLink component={NextLink} href="/login" underline="hover">
+        <Link
+          component={NextLink}
+          href="/login"
+          underline="hover"
+          sx={{ color: colors.link.primary, "&:hover": { color: colors.link.hover } }}
+        >
           로그인
-        </MuiLink>
+        </Link>
       </Typography>
     </Box>
   );

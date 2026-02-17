@@ -4,12 +4,8 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
-import MuiLink from "@mui/material/Link";
 import NextLink from "next/link";
-import { Button, Form } from "@trustee/ui";
+import { Box, Typography, Alert, Link, Button, Form, colors } from "@trustee/ui";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { authApi } from "@/lib/api";
 import {
@@ -34,15 +30,20 @@ export default function ResetPasswordPage() {
   if (!token) {
     return (
       <Box textAlign="center">
-        <Typography variant="h5" fontWeight={700} gutterBottom>
+        <Typography variant="h3" sx={{ mb: 1 }}>
           유효하지 않은 링크
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography variant="body2" sx={{ color: colors.fg.tertiary, mb: 3 }}>
           비밀번호 재설정 링크가 유효하지 않거나 만료되었습니다.
         </Typography>
-        <MuiLink component={NextLink} href="/forgot-password" underline="hover">
+        <Link
+          component={NextLink}
+          href="/forgot-password"
+          underline="hover"
+          sx={{ color: colors.link.primary, "&:hover": { color: colors.link.hover } }}
+        >
           비밀번호 찾기 다시 요청
-        </MuiLink>
+        </Link>
       </Box>
     );
   }
@@ -63,14 +64,13 @@ export default function ResetPasswordPage() {
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight={700} textAlign="center" gutterBottom>
+      <Typography variant="h3" textAlign="center" sx={{ mb: 0.5 }}>
         비밀번호 재설정
       </Typography>
       <Typography
         variant="body2"
-        color="text.secondary"
         textAlign="center"
-        sx={{ mb: 3 }}
+        sx={{ color: colors.fg.tertiary, mb: 3 }}
       >
         새로운 비밀번호를 입력해주세요.
       </Typography>
@@ -102,17 +102,23 @@ export default function ResetPasswordPage() {
           type="submit"
           variant="contained"
           fullWidth
+          size="large"
           loading={isSubmitting}
-          sx={{ mt: 2, mb: 2, py: 1.2 }}
+          sx={{ mt: 2, mb: 2 }}
         >
           비밀번호 변경
         </Button>
       </Form>
 
       <Typography variant="body2" textAlign="center">
-        <MuiLink component={NextLink} href="/login" underline="hover">
+        <Link
+          component={NextLink}
+          href="/login"
+          underline="hover"
+          sx={{ color: colors.link.primary, "&:hover": { color: colors.link.hover } }}
+        >
           로그인으로 돌아가기
-        </MuiLink>
+        </Link>
       </Typography>
     </Box>
   );

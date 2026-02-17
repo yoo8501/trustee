@@ -1,9 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Paper from "@mui/material/Paper";
+import { Box, Container, Paper, colors } from "@trustee/ui";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -13,16 +11,18 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "background.default",
+        backgroundColor: colors.bg.primary,
         py: 4,
       }}
     >
       <Container maxWidth="sm">
         <Paper
-          elevation={1}
+          elevation={0}
           sx={{
             p: { xs: 3, sm: 5 },
-            borderRadius: 2,
+            borderRadius: "12px",
+            backgroundColor: colors.bg.level1,
+            border: `1px solid ${colors.border.primary}`,
           }}
         >
           {children}

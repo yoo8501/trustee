@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { FormTextField, type FormTextFieldProps } from "@trustee/ui";
+import { FormTextField, IconButton, type FormTextFieldProps } from "@trustee/ui";
 
 export function PasswordField(props: FormTextFieldProps) {
   const [showPassword, setShowPassword] = useState(false);

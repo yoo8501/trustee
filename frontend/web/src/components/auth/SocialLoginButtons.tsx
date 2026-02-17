@@ -1,9 +1,6 @@
 "use client";
 
-import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
-import Divider from "@mui/material/Divider";
-import Typography from "@mui/material/Typography";
+import { Button, Stack, Divider, Typography, colors } from "@trustee/ui";
 import GoogleIcon from "@mui/icons-material/Google";
 import GitHubIcon from "@mui/icons-material/GitHub";
 
@@ -16,10 +13,19 @@ export function SocialLoginButtons() {
     // TODO: GitHub OAuth 연동 후 구현
   };
 
+  const socialButtonSx = {
+    borderColor: colors.border.secondary,
+    color: colors.fg.secondary,
+    "&:hover": {
+      borderColor: colors.border.tertiary,
+      backgroundColor: colors.bg.translucent,
+    },
+  };
+
   return (
     <Stack spacing={2}>
       <Divider>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: colors.fg.tertiary }}>
           또는
         </Typography>
       </Divider>
@@ -29,12 +35,7 @@ export function SocialLoginButtons() {
         fullWidth
         startIcon={<GoogleIcon />}
         onClick={handleGoogleLogin}
-        sx={{
-          textTransform: "none",
-          borderColor: "#dadce0",
-          color: "#3c4043",
-          "&:hover": { borderColor: "#d2e3fc", backgroundColor: "#f8f9fa" },
-        }}
+        sx={socialButtonSx}
       >
         Google로 계속하기
       </Button>
@@ -44,12 +45,7 @@ export function SocialLoginButtons() {
         fullWidth
         startIcon={<GitHubIcon />}
         onClick={handleGithubLogin}
-        sx={{
-          textTransform: "none",
-          borderColor: "#d0d7de",
-          color: "#24292f",
-          "&:hover": { borderColor: "#1f2328", backgroundColor: "#f6f8fa" },
-        }}
+        sx={socialButtonSx}
       >
         GitHub로 계속하기
       </Button>
