@@ -20,6 +20,7 @@ export {
   type FormRadioGroupProps,
   type FormRadioOption,
 } from "./components/Form";
+export { Header, type HeaderProps, type HeaderUser } from "./components/Header";
 export { Layout, type LayoutProps, type NavItem } from "./components/Layout";
 export { StatusBadge, type StatusBadgeProps } from "./components/StatusBadge";
 export { SearchInput, type SearchInputProps } from "./components/SearchInput";
