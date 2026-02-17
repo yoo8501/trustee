@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import { createLogger, errorHandler } from "@trustee/common";
 
@@ -8,6 +9,7 @@ import { config } from "./config";
 import { trusteeProxy, inspectionProxy } from "./proxy";
 import { authMiddleware } from "./middleware";
 import { createAggregateRoutes } from "./routes";
+import { UserRepository, AuthService, AuthController, createAuthRoutes } from "./auth";
 
 const logger = createLogger("gateway");
 
@@ -20,6 +22,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 // Rate limiter
 const limiter = rateLimit({
@@ -42,6 +45,12 @@ app.get("/health", (_req, res) => {
     uptime: process.uptime(),
   });
 });
+
+// 인증 라우트 (프록시 전에 등록)
+const userRepository = new UserRepository();
+const authService = new AuthService(userRepository);
+const authController = new AuthController(authService);
+app.use("/api/auth", createAuthRoutes(authController));
 
 // 집계 엔드포인트 (프록시 전에 등록)
 app.use("/api/aggregate", createAggregateRoutes());
