@@ -16,7 +16,7 @@ export interface Column<T> {
   label: string;
   minWidth?: number;
   align?: "left" | "right" | "center";
-  render?: (row: T) => ReactNode;
+  render?: (row: T, index: number) => ReactNode;
 }
 
 export interface DataTableProps<T> {
@@ -112,7 +112,7 @@ export function DataTable<T>({
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
+            {rows.map((row, rowIndex) => (
               <TableRow
                 hover
                 key={getRowKey(row)}
@@ -125,7 +125,7 @@ export function DataTable<T>({
                 {columns.map((column) => (
                   <TableCell key={String(column.id)} align={column.align}>
                     {column.render
-                      ? column.render(row)
+                      ? column.render(row, rowIndex)
                       : String(row[column.id as keyof T] ?? "")}
                   </TableCell>
                 ))}

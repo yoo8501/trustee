@@ -71,9 +71,8 @@ export const colors = {
 export const typography = {
   fontFamily: {
     sans: [
-      '"Inter Variable"',
+      '"Pretendard Variable"',
       "Pretendard",
-      '"SF Pro Display"',
       "-apple-system",
       "BlinkMacSystemFont",
       '"Segoe UI"',
