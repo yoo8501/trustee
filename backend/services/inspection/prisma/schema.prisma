@@ -76,6 +76,7 @@ model ChecklistCategory {
   no         Int
   name       String
   sortOrder  Int    @default(0) @map("sort_order")
+  weight     Int    @default(0)
 
   template ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
   sections ChecklistSection[]
@@ -97,12 +98,13 @@ model ChecklistSection {
 }
 
 model ChecklistItem {
-  id        String  @id @default(cuid())
-  sectionId String  @map("section_id")
-  no        String
-  question  String  @db.Text
-  hint      String? @db.Text
-  sortOrder Int     @default(0) @map("sort_order")
+  id         String  @id @default(cuid())
+  sectionId  String  @map("section_id")
+  no         String
+  question   String  @db.Text
+  hint       String? @db.Text
+  sortOrder  Int     @default(0) @map("sort_order")
+  isCritical Boolean @default(false) @map("is_critical")
 
   section ChecklistSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
@@ -119,6 +121,7 @@ enum TrusteeChecklistStatus {
   in_progress
   submitted
   reviewed
+  rejected
 }
 
 enum ChecklistAnswer {
@@ -151,7 +154,22 @@ model TrusteeChecklist {
   contactEmail String? @map("contact_email")
   contactPhone String? @map("contact_phone")
 
+  // 스코어링 결과
+  totalScore   Float?    @map("total_score")
+  grade        String?   @db.VarChar(2)
+  scoreDetail  Json?     @map("score_detail")
+  scoredAt     DateTime? @map("scored_at")
+
+  // 진행률 캐시
+  totalItemCount Int @default(0) @map("total_item_count")
+  answeredCount  Int @default(0) @map("answered_count")
+
+  // 검토 차수 (반려→재제출 사이클 카운트)
+  reviewRound Int @default(0) @map("review_round")
+
   categories TrusteeChecklistCategory[]
+  reviews    ItemReview[]
+  snapshots  ChecklistSnapshot[]
 
   @@map("trustee_checklists")
 }
@@ -162,6 +180,7 @@ model TrusteeChecklistCategory {
   no          Int
   name        String
   sortOrder   Int    @default(0) @map("sort_order")
+  weight      Int    @default(0)
 
   checklist TrusteeChecklist          @relation(fields: [checklistId], references: [id], onDelete: Cascade)
   sections  TrusteeChecklistSection[]
@@ -193,11 +212,46 @@ model TrusteeChecklistItem {
   answer        ChecklistAnswer?
   currentStatus String?          @map("current_status") @db.Text
   remarks       String?          @db.Text
+  isCritical    Boolean          @default(false) @map("is_critical")
 
   section       TrusteeChecklistSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   evidenceFiles EvidenceFile[]
 
   @@map("trustee_checklist_items")
+}
+
+// ──────────────────────────────────────
+// 검토/반려
+// ──────────────────────────────────────
+
+model ItemReview {
+  id          String   @id @default(cuid())
+  checklistId String   @map("checklist_id")
+  itemId      String   @map("item_id")
+  status      String   // "approved" | "rejected"
+  reason      String?  @db.Text
+  reviewedAt  DateTime @default(now()) @map("reviewed_at")
+  reviewRound Int      @map("review_round")
+
+  checklist TrusteeChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@index([checklistId, reviewRound])
+  @@index([itemId])
+  @@map("item_reviews")
+}
+
+model ChecklistSnapshot {
+  id          String   @id @default(cuid())
+  checklistId String   @map("checklist_id")
+  round       Int
+  data        Json
+  submittedAt DateTime @map("submitted_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  checklist TrusteeChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@unique([checklistId, round])
+  @@map("checklist_snapshots")
 }
 
 model EvidenceFile {

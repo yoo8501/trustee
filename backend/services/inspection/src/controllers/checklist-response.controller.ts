@@ -10,7 +10,7 @@ export class ChecklistResponseController {
     try {
       const checklist = await this.service.getByToken(req.params.token as string);
       // accessToken은 응답에서 제외 (보안)
-      const { accessToken, ...data } = checklist as Record<string, unknown>;
+      const { accessToken: _token, ...data } = checklist as Record<string, unknown>;
       res.json({ data });
     } catch (error) {
       next(error);
@@ -57,7 +57,7 @@ export class ChecklistResponseController {
   reopen = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await this.service.reopen(req.params.token as string);
-      const { accessToken, ...data } = result as Record<string, unknown>;
+      const { accessToken: _token, ...data } = result as Record<string, unknown>;
       res.json({ data });
     } catch (error) {
       next(error);
@@ -68,7 +68,7 @@ export class ChecklistResponseController {
     try {
       const files = (req.files as Express.Multer.File[] | undefined) || [];
       const uploadedFiles: UploadedFile[] = files.map((f) => ({
-        originalname: f.originalname,
+        originalname: Buffer.from(f.originalname, "latin1").toString("utf8"),
         size: f.size,
         mimetype: f.mimetype,
         buffer: f.buffer,
@@ -97,10 +97,31 @@ export class ChecklistResponseController {
     }
   };
 
+  getReviews = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.service.getReviews(req.params.token as string);
+      res.json({ data: result });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   downloadFile = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const storagePath = req.params[0] as string;
-      const { stream } = await this.service.getFileByPath(storagePath);
+      const { stream, fileName, mimeType } = await this.service.getFileByPath(storagePath);
+
+      if (mimeType) {
+        res.setHeader("Content-Type", mimeType);
+      }
+      if (fileName) {
+        const encoded = encodeURIComponent(fileName);
+        res.setHeader(
+          "Content-Disposition",
+          `inline; filename="${encoded}"; filename*=UTF-8''${encoded}`
+        );
+      }
+
       stream.pipe(res);
     } catch (error) {
       next(error);

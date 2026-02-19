@@ -17,6 +17,7 @@ export function createChecklistResponseRoutes(
   // 파일 다운로드 (인증 불필요)
   router.get("/files/*", controller.downloadFile);
 
+  router.get("/:token/reviews", controller.getReviews);
   router.get("/:token", controller.getByToken);
   router.patch(
     "/:token/items/:itemId",

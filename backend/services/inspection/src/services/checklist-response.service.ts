@@ -9,6 +9,7 @@ import { randomUUID } from "crypto";
 
 import { TrusteeChecklistRepository } from "../repositories";
 import type { StorageProvider, UploadedFile } from "../storage";
+import { ScoringService } from "./scoring.service";
 
 const MAX_FILES_PER_ITEM = 5;
 
@@ -16,7 +17,8 @@ export class ChecklistResponseService {
   constructor(
     private repository: TrusteeChecklistRepository,
     private rabbitmq: RabbitMQClient | null,
-    private storage: StorageProvider
+    private storage: StorageProvider,
+    private scoringService: ScoringService
   ) {}
 
   async getByToken(token: string) {
@@ -37,8 +39,8 @@ export class ChecklistResponseService {
     const checklist = await this.getByToken(token);
     this.validateEditable(checklist);
 
-    // 첫 저장 시 상태를 in_progress로 자동 변경
-    if (checklist.status === "sent") {
+    // 첫 저장 또는 반려 후 재작성 시 상태를 in_progress로 자동 변경
+    if (checklist.status === "sent" || checklist.status === "rejected") {
       await this.repository.update(checklist.id, { status: "in_progress" });
     }
 
@@ -49,7 +51,7 @@ export class ChecklistResponseService {
     const checklist = await this.getByToken(token);
     this.validateEditable(checklist);
 
-    if (checklist.status === "sent") {
+    if (checklist.status === "sent" || checklist.status === "rejected") {
       await this.repository.update(checklist.id, { status: "in_progress" });
     }
 
@@ -60,13 +62,37 @@ export class ChecklistResponseService {
     const checklist = await this.getByToken(token);
     this.validateEditable(checklist);
 
+    const newSubmissionCount = (checklist.submissionCount || 0) + 1;
+
+    // 제출 시 스냅샷 자동 저장
+    const snapshotData = this.buildSnapshotData(checklist);
+    try {
+      await this.repository.createSnapshot({
+        checklistId: checklist.id,
+        round: newSubmissionCount,
+        data: snapshotData,
+        submittedAt: new Date(),
+      });
+    } catch {
+      // 중복 round인 경우 무시 (이미 스냅샷 존재)
+    }
+
     const updated = await this.repository.update(checklist.id, {
       status: "submitted",
       submittedAt: new Date(),
-      submissionCount: (checklist.submissionCount || 0) + 1,
+      submissionCount: newSubmissionCount,
       contactName: dto.contactName,
       contactEmail: dto.contactEmail || undefined,
       contactPhone: dto.contactPhone || undefined,
+    });
+
+    // 자동 스코어링 (update는 fullInclude로 categories 포함)
+    const scoreResult = this.scoringService.calculate(updated as unknown as Parameters<typeof this.scoringService.calculate>[0]);
+    await this.repository.update(checklist.id, {
+      totalScore: scoreResult.totalScore,
+      grade: scoreResult.grade,
+      scoreDetail: JSON.parse(JSON.stringify(scoreResult)),
+      scoredAt: new Date(),
     });
 
     await this.publishEvent(EVENT_ROUTING_KEYS.INSPECTION_CREATED, {
@@ -76,10 +102,13 @@ export class ChecklistResponseService {
         trusteeId: checklist.trusteeId,
         contactName: dto.contactName,
         submissionCount: updated.submissionCount,
+        totalScore: scoreResult.totalScore,
+        grade: scoreResult.grade,
       },
     });
 
-    return updated;
+    // 스코어 포함 최신 데이터 반환
+    return this.repository.findById(checklist.id);
   }
 
   async reopen(token: string) {
@@ -118,8 +147,8 @@ export class ChecklistResponseService {
       );
     }
 
-    // 첫 저장 시 상태 자동 변경
-    if (checklist.status === "sent") {
+    // 첫 저장 또는 반려 후 재작성 시 상태 자동 변경
+    if (checklist.status === "sent" || checklist.status === "rejected") {
       await this.repository.update(checklist.id, { status: "in_progress" });
     }
 
@@ -157,11 +186,18 @@ export class ChecklistResponseService {
   }
 
   async getFileByPath(storagePath: string) {
-    // storagePath로 DB에서 파일 메타 조회 (파일명, MIME 타입)
-    // 간단히 스토리지에서 스트림만 반환
+    const file = await this.repository.findEvidenceFileByStoragePath(storagePath);
+    const stream = await this.storage.getStream(storagePath);
     return {
-      stream: await this.storage.getStream(storagePath),
+      stream,
+      fileName: file?.fileName,
+      mimeType: file?.mimeType,
     };
+  }
+
+  async getReviews(token: string) {
+    const checklist = await this.getByToken(token);
+    return this.repository.findReviews(checklist.id, checklist.reviewRound || undefined);
   }
 
   private validateEditable(checklist: {
@@ -178,7 +214,43 @@ export class ChecklistResponseService {
       throw new ForbiddenError("작성 기한이 종료되었습니다.");
     }
 
-    // 기한 내 + (sent | in_progress | submitted) → 수정 가능
+    // 기한 내 + (sent | in_progress | submitted | rejected) → 수정 가능
+  }
+
+  private buildSnapshotData(checklist: {
+    categories: {
+      sections: {
+        items: {
+          id: string;
+          no: string;
+          question: string;
+          applicable: boolean;
+          answer: string | null;
+          currentStatus: string | null;
+          remarks: string | null;
+          evidenceFiles: { fileName: string }[];
+        }[];
+      }[];
+    }[];
+  }) {
+    const items: { itemId: string; no: string; question: string; applicable: boolean; answer: string | null; currentStatus: string | null; remarks: string | null; evidenceFileNames: string[] }[] = [];
+    for (const cat of checklist.categories) {
+      for (const sec of cat.sections) {
+        for (const item of sec.items) {
+          items.push({
+            itemId: item.id,
+            no: item.no,
+            question: item.question,
+            applicable: item.applicable,
+            answer: item.answer,
+            currentStatus: item.currentStatus,
+            remarks: item.remarks,
+            evidenceFileNames: item.evidenceFiles.map((f) => f.fileName),
+          });
+        }
+      }
+    }
+    return items;
   }
 
   private async publishEvent(routingKey: string, event: Record<string, unknown>) {

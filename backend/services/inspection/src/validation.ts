@@ -49,6 +49,7 @@ export const createChecklistTemplateSchema = z.object({
   categories: z.array(z.object({
     no: z.number(),
     name: z.string().min(1),
+    weight: z.number().min(0).max(100).optional(),
     sections: z.array(z.object({
       no: z.string().min(1),
       name: z.string().min(1),
@@ -56,6 +57,7 @@ export const createChecklistTemplateSchema = z.object({
         no: z.string().min(1),
         question: z.string().min(1),
         hint: z.string().optional(),
+        isCritical: z.boolean().optional(),
       })).min(1),
     })).min(1),
   })).min(1),
@@ -87,8 +89,21 @@ export const createTrusteeChecklistSchema = z.object({
 
 export const updateTrusteeChecklistSchema = z.object({
   inspectionScope: z.string().optional(),
-  status: z.enum(["draft", "sent", "in_progress", "submitted", "reviewed"]).optional(),
+  status: z.enum(["draft", "sent", "in_progress", "submitted", "reviewed", "rejected"]).optional(),
   deadline: z.string().optional(),
+});
+
+export const rejectChecklistSchema = z.object({
+  items: z.array(z.object({
+    itemId: z.string().min(1, "항목 ID는 필수입니다"),
+    status: z.enum(["approved", "rejected"]),
+    reason: z.string().optional(),
+  })).min(1, "최소 1개의 항목이 필요합니다")
+    .refine(
+      (items) => items.some((item) => item.status === "rejected"),
+      "반려 항목이 최소 1개 이상 있어야 합니다"
+    ),
+  newDeadline: z.string().min(1, "새 작성 기한은 필수입니다"),
 });
 
 export const updateTrusteeChecklistItemSchema = z.object({

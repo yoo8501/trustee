@@ -5,7 +5,7 @@ import { EXCHANGE_NAME } from "@trustee/types";
 
 import { config } from "./config";
 import { InspectionRepository, InspectionItemRepository, ChecklistTemplateRepository, TrusteeChecklistRepository } from "./repositories";
-import { InspectionService, InspectionItemService, ChecklistTemplateService, TrusteeChecklistService, ChecklistResponseService } from "./services";
+import { InspectionService, InspectionItemService, ChecklistTemplateService, TrusteeChecklistService, ChecklistResponseService, ScoringService } from "./services";
 import { InspectionController, InspectionItemController, ChecklistTemplateController, TrusteeChecklistController, ChecklistResponseController } from "./controllers";
 import { createInspectionRoutes, createInspectionItemRoutes, createChecklistTemplateRoutes, createTrusteeChecklistRoutes, createChecklistResponseRoutes } from "./routes";
 import { startGrpcServer } from "./grpc-server";
@@ -45,12 +45,16 @@ async function main() {
     await setupEventHandlers(rabbitmq, inspectionService);
   }
 
+  // Scoring Service
+  const scoringService = new ScoringService();
+
   // Checklist Services
   const checklistTemplateService = new ChecklistTemplateService(checklistTemplateRepository);
   const trusteeChecklistService = new TrusteeChecklistService(
     trusteeChecklistRepository,
     checklistTemplateRepository,
-    rabbitmq
+    rabbitmq,
+    scoringService
   );
 
   // Storage Provider
@@ -60,7 +64,8 @@ async function main() {
   const checklistResponseService = new ChecklistResponseService(
     trusteeChecklistRepository,
     rabbitmq,
-    storageProvider
+    storageProvider,
+    scoringService
   );
 
   // Controllers

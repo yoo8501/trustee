@@ -34,6 +34,7 @@ interface FullChecklistTemplate {
     no: number;
     name: string;
     sortOrder: number;
+    weight: number;
     sections: {
       no: string;
       name: string;
@@ -43,6 +44,7 @@ interface FullChecklistTemplate {
         question: string;
         hint: string | null;
         sortOrder: number;
+        isCritical: boolean;
       }[];
     }[];
   }[];
@@ -79,6 +81,14 @@ export class TrusteeChecklistRepository {
     inspectionScope?: string;
     accessTokenExpiresAt: Date;
   }) {
+    // 전체 항목 수 계산
+    let totalItemCount = 0;
+    for (const cat of params.template.categories) {
+      for (const sec of cat.sections) {
+        totalItemCount += sec.items.length;
+      }
+    }
+
     return prisma.$transaction(async (tx) => {
       const checklist = await tx.trusteeChecklist.create({
         data: {
@@ -89,11 +99,14 @@ export class TrusteeChecklistRepository {
           inspectionScope: params.inspectionScope,
           accessTokenExpiresAt: params.accessTokenExpiresAt,
           status: "draft",
+          totalItemCount,
+          answeredCount: 0,
           categories: {
             create: params.template.categories.map((cat) => ({
               no: cat.no,
               name: cat.name,
               sortOrder: cat.sortOrder,
+              weight: cat.weight || 0,
               sections: {
                 create: cat.sections.map((sec) => ({
                   no: sec.no,
@@ -109,6 +122,7 @@ export class TrusteeChecklistRepository {
                       answer: null,
                       currentStatus: null,
                       remarks: null,
+                      isCritical: item.isCritical || false,
                     })),
                   },
                 })),
@@ -131,6 +145,13 @@ export class TrusteeChecklistRepository {
       contactName?: string;
       contactEmail?: string;
       contactPhone?: string;
+      totalScore?: number;
+      grade?: string;
+      scoreDetail?: Prisma.InputJsonValue;
+      scoredAt?: Date;
+      totalItemCount?: number;
+      answeredCount?: number;
+      reviewRound?: number;
     }
   ) {
     return prisma.trusteeChecklist.update({
@@ -192,6 +213,10 @@ export class TrusteeChecklistRepository {
     return prisma.evidenceFile.count({ where: { itemId } });
   }
 
+  async findEvidenceFileByStoragePath(storagePath: string) {
+    return prisma.evidenceFile.findFirst({ where: { storagePath } });
+  }
+
   async findByToken(token: string) {
     return prisma.trusteeChecklist.findUnique({
       where: { accessToken: token },
@@ -209,6 +234,131 @@ export class TrusteeChecklistRepository {
   async delete(id: string) {
     return prisma.trusteeChecklist.delete({
       where: { id },
+    });
+  }
+
+  // ── 스코어링 ──
+
+  async getStats() {
+    const [total, submitted, reviewed, scores] = await Promise.all([
+      prisma.trusteeChecklist.count(),
+      prisma.trusteeChecklist.count({ where: { status: "submitted" } }),
+      prisma.trusteeChecklist.count({ where: { status: "reviewed" } }),
+      prisma.trusteeChecklist.aggregate({
+        _avg: { totalScore: true },
+        where: { totalScore: { not: null } },
+      }),
+    ]);
+
+    return {
+      total,
+      submitted,
+      reviewed,
+      averageScore: scores._avg.totalScore
+        ? Math.round(scores._avg.totalScore * 10) / 10
+        : null,
+    };
+  }
+
+  async findRecentSubmitted(limit: number) {
+    return prisma.trusteeChecklist.findMany({
+      where: {
+        status: { in: ["submitted", "reviewed"] },
+      },
+      orderBy: { submittedAt: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        trusteeId: true,
+        status: true,
+        totalScore: true,
+        grade: true,
+        submittedAt: true,
+      },
+    });
+  }
+
+  // ── 검토/반려 ──
+
+  async reject(params: {
+    checklistId: string;
+    items: { itemId: string; status: string; reason?: string }[];
+    reviewRound: number;
+    newDeadline: Date;
+  }) {
+    return prisma.$transaction(async (tx) => {
+      await tx.itemReview.createMany({
+        data: params.items.map((item) => ({
+          checklistId: params.checklistId,
+          itemId: item.itemId,
+          status: item.status,
+          reason: item.reason || null,
+          reviewRound: params.reviewRound,
+        })),
+      });
+
+      return tx.trusteeChecklist.update({
+        where: { id: params.checklistId },
+        data: {
+          status: "rejected",
+          reviewRound: params.reviewRound,
+          accessTokenExpiresAt: params.newDeadline,
+        },
+        include: fullInclude,
+      });
+    });
+  }
+
+  async createSnapshot(params: {
+    checklistId: string;
+    round: number;
+    data: unknown;
+    submittedAt: Date;
+  }) {
+    return prisma.checklistSnapshot.create({
+      data: {
+        checklistId: params.checklistId,
+        round: params.round,
+        data: params.data as Prisma.InputJsonValue,
+        submittedAt: params.submittedAt,
+      },
+    });
+  }
+
+  async findSnapshot(checklistId: string, round: number) {
+    return prisma.checklistSnapshot.findUnique({
+      where: { checklistId_round: { checklistId, round } },
+    });
+  }
+
+  async findSnapshots(checklistId: string) {
+    return prisma.checklistSnapshot.findMany({
+      where: { checklistId },
+      orderBy: { round: "asc" },
+    });
+  }
+
+  async findSnapshotsMeta(checklistId: string) {
+    return prisma.checklistSnapshot.findMany({
+      where: { checklistId },
+      orderBy: { round: "asc" },
+      select: {
+        id: true,
+        checklistId: true,
+        round: true,
+        submittedAt: true,
+      },
+    });
+  }
+
+  async findReviews(checklistId: string, reviewRound?: number) {
+    return prisma.itemReview.findMany({
+      where: {
+        checklistId,
+        ...(reviewRound !== undefined ? { reviewRound } : {}),
+      },
+      orderBy: { reviewedAt: "desc" },
     });
   }
 }
