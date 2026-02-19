@@ -21,6 +21,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
   if (isLoading) {
     return (
       <Box
@@ -36,12 +42,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </Box>
     );
   }
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace("/login");
-    }
-  }, [isLoading, isAuthenticated, router]);
 
   if (!isAuthenticated) {
     return null;

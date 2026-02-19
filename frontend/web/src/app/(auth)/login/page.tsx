@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,25 +14,56 @@ import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { useAuth } from "@/hooks";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 
+const SAVED_EMAIL_COOKIE = "trustee_saved_email";
+const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30일 (초)
+
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function setCookie(name: string, value: string, maxAge: number) {
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
+
+function deleteCookie(name: string) {
+  document.cookie = `${name}=; path=/; max-age=0`;
+}
+
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [rememberEmail, setRememberEmail] = useState(false);
 
   const registered = searchParams.get("registered") === "true";
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
+  useEffect(() => {
+    const savedEmail = getCookie(SAVED_EMAIL_COOKIE);
+    if (savedEmail) {
+      setValue("email", savedEmail);
+      setRememberEmail(true);
+    }
+  }, [setValue]);
+
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
     try {
       await login(data);
+      if (rememberEmail) {
+        setCookie(SAVED_EMAIL_COOKIE, data.email, COOKIE_MAX_AGE);
+      } else {
+        deleteCookie(SAVED_EMAIL_COOKIE);
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -90,7 +121,11 @@ export default function LoginPage() {
           alignItems="center"
           sx={{ mt: 1, mb: 1 }}
         >
-          <FormCheckbox label="로그인 상태 유지" />
+          <FormCheckbox
+            label="이메일 저장"
+            checked={rememberEmail}
+            onChange={setRememberEmail}
+          />
           <Link
             component={NextLink}
             href="/forgot-password"

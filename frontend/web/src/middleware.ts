@@ -6,6 +6,7 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/design-system",
+  "/checklist",
 ];
 
 export function middleware(request: NextRequest) {
