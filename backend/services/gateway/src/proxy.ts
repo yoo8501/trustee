@@ -34,5 +34,14 @@ export const inspectionProxy = createProxyMiddleware({
       }
       fixRequestBody(proxyReq, req);
     },
+    proxyRes: (proxyRes, req) => {
+      // 파일 다운로드 경로: iframe 미리보기를 위해 보안 헤더 완화
+      const url = (req as IncomingMessage).url || "";
+      if (url.includes("/api/checklist-response/files")) {
+        delete proxyRes.headers["x-frame-options"];
+        delete proxyRes.headers["content-security-policy"];
+        proxyRes.headers["cross-origin-resource-policy"] = "cross-origin";
+      }
+    },
   },
 });
