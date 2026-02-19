@@ -16,6 +16,7 @@ export interface ChecklistCategory {
   no: number;
   name: string;
   sortOrder: number;
+  weight: number;
   sections: ChecklistSection[];
 }
 
@@ -35,6 +36,7 @@ export interface ChecklistItem {
   question: string;
   hint?: string;
   sortOrder: number;
+  isCritical: boolean;
 }
 
 export interface CreateChecklistTemplateInput {
@@ -44,6 +46,7 @@ export interface CreateChecklistTemplateInput {
   categories: {
     no: number;
     name: string;
+    weight?: number;
     sections: {
       no: string;
       name: string;
@@ -51,6 +54,7 @@ export interface CreateChecklistTemplateInput {
         no: string;
         question: string;
         hint?: string;
+        isCritical?: boolean;
       }[];
     }[];
   }[];
@@ -64,12 +68,15 @@ export interface UpdateChecklistTemplateInput {
 
 // ── 수탁사 체크리스트 ──
 
+import type { ScoringResult } from "./scoring";
+
 export type TrusteeChecklistStatus =
   | "draft"
   | "sent"
   | "in_progress"
   | "submitted"
-  | "reviewed";
+  | "reviewed"
+  | "rejected";
 
 export type ChecklistAnswer = "yes" | "no" | "not_applicable";
 
@@ -88,6 +95,13 @@ export interface TrusteeChecklist {
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
+  totalScore?: number;
+  grade?: string;
+  scoreDetail?: ScoringResult;
+  scoredAt?: Date;
+  totalItemCount: number;
+  answeredCount: number;
+  reviewRound: number;
   categories: TrusteeChecklistCategory[];
   createdAt: Date;
   updatedAt: Date;
@@ -99,6 +113,7 @@ export interface TrusteeChecklistCategory {
   no: number;
   name: string;
   sortOrder: number;
+  weight: number;
   sections: TrusteeChecklistSection[];
 }
 
@@ -132,6 +147,7 @@ export interface TrusteeChecklistItem {
   answer?: ChecklistAnswer;
   currentStatus?: string;
   remarks?: string;
+  isCritical: boolean;
   evidenceFiles: EvidenceFile[];
 }
 
@@ -175,4 +191,71 @@ export interface SubmitTrusteeChecklistInput {
 // 토큰 재발급 응답
 export interface RegenerateTokenResponse {
   accessToken: string;
+}
+
+// ── 검토/반려 ──
+
+export interface ItemReview {
+  id: string;
+  checklistId: string;
+  itemId: string;
+  status: "approved" | "rejected";
+  reason?: string;
+  reviewedAt: Date;
+  reviewRound: number;
+}
+
+export interface SnapshotItemData {
+  itemId: string;
+  no: string;
+  question: string;
+  applicable: boolean;
+  answer: ChecklistAnswer | null;
+  currentStatus: string | null;
+  remarks: string | null;
+  evidenceFileNames: string[];
+}
+
+export interface ChecklistSnapshot {
+  id: string;
+  checklistId: string;
+  round: number;
+  data: SnapshotItemData[];
+  submittedAt: Date;
+}
+
+export interface ChecklistSnapshotMeta {
+  id: string;
+  checklistId: string;
+  round: number;
+  submittedAt: Date;
+}
+
+export interface RejectChecklistInput {
+  items: {
+    itemId: string;
+    status: "approved" | "rejected";
+    reason?: string;
+  }[];
+  newDeadline: string;
+}
+
+export interface ChecklistDiffResult {
+  previousRound: number;
+  currentRound: number;
+  changes: ChecklistDiffItem[];
+}
+
+export interface ChecklistDiffItem {
+  itemId: string;
+  no: string;
+  question: string;
+  fields: ChecklistDiffField[];
+}
+
+export interface ChecklistDiffField {
+  field: "answer" | "currentStatus" | "remarks" | "evidenceFiles" | "applicable";
+  previous: string | null;
+  current: string | null;
+  changed: boolean;
 }

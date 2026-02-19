@@ -2,6 +2,7 @@ export * from "./events";
 export * from "./api";
 export * from "./auth";
 export * from "./checklist";
+export * from "./scoring";
 
 // 수탁사 상태
 export type TrusteeStatus = "active" | "inactive" | "pending";
