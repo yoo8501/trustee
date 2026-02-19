@@ -4,18 +4,40 @@ import { randomUUID } from "crypto";
 
 import { TrusteeRepository } from "../repositories";
 
-interface CreateTrusteeDto {
-  companyName: string;
-  businessNumber: string;
-  representative: string;
-  contactName: string;
-  contactPhone: string;
-  contactEmail: string;
-  delegatedTasks: string;
-  status?: "active" | "inactive" | "pending";
+interface CreateContactDto {
+  name: string;
+  phone?: string;
+  email?: string;
+  department?: string;
+  position?: string;
+  isPrimary: boolean;
 }
 
-type UpdateTrusteeDto = Partial<CreateTrusteeDto>;
+interface CreateTrusteeDto {
+  companyName: string;
+  businessNumber?: string;
+  representative?: string;
+  delegatedTasks: string;
+  status?: "active" | "inactive" | "pending";
+  contacts: CreateContactDto[];
+}
+
+interface UpdateTrusteeDto {
+  companyName?: string;
+  businessNumber?: string;
+  representative?: string;
+  delegatedTasks?: string;
+  status?: "active" | "inactive" | "pending";
+  contacts?: Array<{
+    id?: string;
+    name: string;
+    phone?: string;
+    email?: string;
+    department?: string;
+    position?: string;
+    isPrimary: boolean;
+  }>;
+}
 
 interface ListParams {
   page?: number;
@@ -40,7 +62,7 @@ export class TrusteeService {
       where.OR = [
         { companyName: { contains: params.search } },
         { businessNumber: { contains: params.search } },
-        { contactName: { contains: params.search } },
+        { contacts: { some: { name: { contains: params.search } } } },
       ];
     }
     if (params.status) {
@@ -66,9 +88,15 @@ export class TrusteeService {
   }
 
   async create(dto: CreateTrusteeDto) {
-    const existing = await this.repository.findByBusinessNumber(dto.businessNumber);
-    if (existing) {
-      throw new ConflictError(`사업자번호 '${dto.businessNumber}'는 이미 등록되어 있습니다.`);
+    if (dto.businessNumber) {
+      const existing = await this.repository.findByBusinessNumber(
+        dto.businessNumber
+      );
+      if (existing) {
+        throw new ConflictError(
+          `사업자번호 '${dto.businessNumber}'는 이미 등록되어 있습니다.`
+        );
+      }
     }
 
     const trustee = await this.repository.create(dto);
@@ -92,9 +120,13 @@ export class TrusteeService {
     }
 
     if (dto.businessNumber && dto.businessNumber !== existing.businessNumber) {
-      const duplicate = await this.repository.findByBusinessNumber(dto.businessNumber);
+      const duplicate = await this.repository.findByBusinessNumber(
+        dto.businessNumber
+      );
       if (duplicate) {
-        throw new ConflictError(`사업자번호 '${dto.businessNumber}'는 이미 등록되어 있습니다.`);
+        throw new ConflictError(
+          `사업자번호 '${dto.businessNumber}'는 이미 등록되어 있습니다.`
+        );
       }
     }
 
@@ -137,7 +169,10 @@ export class TrusteeService {
     return this.repository.exists(id);
   }
 
-  private async publishEvent(routingKey: string, event: Record<string, unknown>) {
+  private async publishEvent(
+    routingKey: string,
+    event: Record<string, unknown>
+  ) {
     if (!this.rabbitmq) return;
 
     try {
