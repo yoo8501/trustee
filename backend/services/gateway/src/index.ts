@@ -21,7 +21,13 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || "http://localhost:3000",
   credentials: true,
 }));
-app.use(express.json());
+app.use((req, res, next) => {
+  // 파일 업로드 경로는 body 파싱 건너뛰기 (multipart 스트리밍)
+  if (req.path.includes("/files")) {
+    return next();
+  }
+  express.json()(req, res, next);
+});
 app.use(cookieParser());
 
 // Rate limiter

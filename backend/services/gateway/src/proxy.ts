@@ -23,6 +23,16 @@ export const trusteeProxy = createProxyMiddleware({
 export const inspectionProxy = createProxyMiddleware({
   target: config.inspectionServiceUrl,
   changeOrigin: true,
-  pathFilter: ["/api/inspections", "/api/inspection-items"],
-  on: { proxyReq: fixRequestBody },
+  pathFilter: ["/api/inspections", "/api/inspection-items", "/api/checklist-templates", "/api/trustee-checklists", "/api/checklist-response"],
+  pathRewrite: undefined,
+  on: {
+    proxyReq: (proxyReq, req) => {
+      // 파일 업로드/다운로드 경로는 raw body 스트리밍 (fixRequestBody 건너뛰기)
+      const url = (req as IncomingMessage).url || "";
+      if (url.includes("/files")) {
+        return;
+      }
+      fixRequestBody(proxyReq, req);
+    },
+  },
 });
