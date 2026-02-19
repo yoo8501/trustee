@@ -34,20 +34,36 @@ enum InspectionResult {
 model Trustee {
   id              String        @id @default(cuid())
   companyName     String        @map("company_name")
-  businessNumber  String        @unique @map("business_number")
-  representative  String
-  contactName     String        @map("contact_name")
-  contactPhone    String        @map("contact_phone")
-  contactEmail    String        @map("contact_email")
+  businessNumber  String?       @unique @map("business_number")
+  representative  String?
   delegatedTasks  String        @map("delegated_tasks") @db.Text
   status          TrusteeStatus @default(pending)
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
+  contacts    TrusteeContact[]
   contracts   Contract[]
   inspections Inspection[]
 
   @@map("trustees")
+}
+
+// 수탁사 담당자
+model TrusteeContact {
+  id         String   @id @default(cuid())
+  trusteeId  String   @map("trustee_id")
+  name       String
+  phone      String?
+  email      String?
+  department String?
+  position   String?
+  isPrimary  Boolean  @default(false) @map("is_primary")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  trustee Trustee @relation(fields: [trusteeId], references: [id], onDelete: Cascade)
+
+  @@map("trustee_contacts")
 }
 
 // 계약

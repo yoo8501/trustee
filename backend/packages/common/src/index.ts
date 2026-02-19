@@ -1,4 +1,4 @@
-export { AppError, NotFoundError, ValidationError, ConflictError } from "./errors";
+export { AppError, NotFoundError, ValidationError, ConflictError, ForbiddenError } from "./errors";
 export { createLogger } from "./logger";
 export { errorHandler, validate } from "./middleware";
 export { RabbitMQClient } from "./rabbitmq";
