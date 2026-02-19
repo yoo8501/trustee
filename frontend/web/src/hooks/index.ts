@@ -47,6 +47,14 @@ export {
   useBatchUpdateChecklistItems,
   useRegenerateToken,
   useDeleteTrusteeChecklist,
+  useRejectChecklist,
+  useReviewChecklist,
+  useChecklistSnapshots,
+  useChecklistDiff,
+  useChecklistReviews,
+  useChecklistStats,
+  useRecentSubmitted,
+  useScoreChecklist,
 } from "./useTrusteeChecklists";
 
 export {
@@ -56,4 +64,5 @@ export {
   useDeleteEvidence,
   useSubmitChecklist,
   useReopenChecklist,
+  useChecklistResponseReviews,
 } from "./useChecklistResponse";

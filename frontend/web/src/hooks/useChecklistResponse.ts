@@ -76,3 +76,11 @@ export function useReopenChecklist(token: string) {
     },
   });
 }
+
+export function useChecklistResponseReviews(token: string) {
+  return useQuery({
+    queryKey: [...RESPONSE_KEY, token, "reviews"],
+    queryFn: () => checklistResponseApi.getReviews(token),
+    enabled: !!token,
+  });
+}

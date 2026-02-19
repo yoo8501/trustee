@@ -4,6 +4,11 @@ import type {
   UpdateTrusteeChecklistInput,
   UpdateTrusteeChecklistItemInput,
   BatchUpdateChecklistItemsInput,
+  RejectChecklistInput,
+  ChecklistDiffResult,
+  ChecklistSnapshotMeta,
+  ItemReview,
+  ScoringResult,
 } from "@trustee/types";
 
 import { apiClient } from "./client";
@@ -55,5 +60,37 @@ export const trusteeChecklistsApi = {
 
   delete(id: string): Promise<void> {
     return apiClient.delete(`/api/trustee-checklists/${id}`);
+  },
+
+  reject(id: string, data: RejectChecklistInput): Promise<ChecklistResponse> {
+    return apiClient.post(`/api/trustee-checklists/${id}/reject`, data);
+  },
+
+  review(id: string): Promise<ChecklistResponse> {
+    return apiClient.post(`/api/trustee-checklists/${id}/review`);
+  },
+
+  getSnapshots(id: string): Promise<{ data: ChecklistSnapshotMeta[] }> {
+    return apiClient.get(`/api/trustee-checklists/${id}/snapshots`);
+  },
+
+  getDiff(id: string, round?: number): Promise<{ data: ChecklistDiffResult }> {
+    return apiClient.get(`/api/trustee-checklists/${id}/diff`, round ? { round } : undefined);
+  },
+
+  getReviews(id: string, round?: number): Promise<{ data: ItemReview[] }> {
+    return apiClient.get(`/api/trustee-checklists/${id}/reviews`, round ? { round } : undefined);
+  },
+
+  stats(): Promise<{ data: { total: number; submitted: number; reviewed: number; averageScore: number | null } }> {
+    return apiClient.get("/api/trustee-checklists/stats/summary");
+  },
+
+  recentSubmitted(limit?: number): Promise<{ data: { id: string; title: string; trusteeId: string; status: string; totalScore: number | null; grade: string | null; submittedAt: string | null }[] }> {
+    return apiClient.get("/api/trustee-checklists/recent/submitted", limit ? { limit } : undefined);
+  },
+
+  score(id: string): Promise<{ data: ScoringResult }> {
+    return apiClient.post(`/api/trustee-checklists/${id}/score`);
   },
 };

@@ -6,6 +6,7 @@ import type {
   UpdateTrusteeChecklistInput,
   UpdateTrusteeChecklistItemInput,
   BatchUpdateChecklistItemsInput,
+  RejectChecklistInput,
 } from "@trustee/types";
 
 import { trusteeChecklistsApi } from "@/lib/api";
@@ -107,6 +108,78 @@ export function useDeleteTrusteeChecklist() {
 
   return useMutation({
     mutationFn: (id: string) => trusteeChecklistsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
+    },
+  });
+}
+
+export function useRejectChecklist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: RejectChecklistInput }) =>
+      trusteeChecklistsApi.reject(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
+    },
+  });
+}
+
+export function useReviewChecklist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => trusteeChecklistsApi.review(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
+    },
+  });
+}
+
+export function useChecklistSnapshots(id: string) {
+  return useQuery({
+    queryKey: [...CHECKLISTS_KEY, id, "snapshots"],
+    queryFn: () => trusteeChecklistsApi.getSnapshots(id),
+    enabled: !!id,
+  });
+}
+
+export function useChecklistDiff(id: string, round?: number) {
+  return useQuery({
+    queryKey: [...CHECKLISTS_KEY, id, "diff", round],
+    queryFn: () => trusteeChecklistsApi.getDiff(id, round),
+    enabled: !!id,
+  });
+}
+
+export function useChecklistReviews(id: string, round?: number) {
+  return useQuery({
+    queryKey: [...CHECKLISTS_KEY, id, "reviews", round],
+    queryFn: () => trusteeChecklistsApi.getReviews(id, round),
+    enabled: !!id,
+  });
+}
+
+export function useChecklistStats() {
+  return useQuery({
+    queryKey: [...CHECKLISTS_KEY, "stats"],
+    queryFn: () => trusteeChecklistsApi.stats(),
+  });
+}
+
+export function useRecentSubmitted(limit?: number) {
+  return useQuery({
+    queryKey: [...CHECKLISTS_KEY, "recent", limit],
+    queryFn: () => trusteeChecklistsApi.recentSubmitted(limit),
+  });
+}
+
+export function useScoreChecklist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => trusteeChecklistsApi.score(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CHECKLISTS_KEY });
     },

@@ -122,7 +122,9 @@ export default function NewChecklistPage() {
           onChange={(e) => setTrusteeId(e.target.value)}
           sx={{ mb: 2 }}
           required
+          slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true } }}
         >
+          <MenuItem value="" disabled>수탁사를 선택하세요</MenuItem>
           {(trusteesData?.data ?? []).map((t) => (
             <MenuItem key={t.id} value={t.id}>
               {t.companyName} {t.businessNumber ? `(${t.businessNumber})` : ""}
@@ -138,7 +140,9 @@ export default function NewChecklistPage() {
           onChange={(e) => setTemplateId(e.target.value)}
           sx={{ mb: 2 }}
           required
+          slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true } }}
         >
+          <MenuItem value="" disabled>템플릿을 선택하세요</MenuItem>
           {(templatesData?.data ?? []).map((t) => (
             <MenuItem key={t.id} value={t.id}>
               {t.title} (v{t.version})
@@ -153,9 +157,17 @@ export default function NewChecklistPage() {
           value={deadline}
           onChange={(e) => setDeadline(e.target.value)}
           required
-          slotProps={{ inputLabel: { shrink: true } }}
+          slotProps={{
+            inputLabel: { shrink: true },
+            htmlInput: { min: new Date().toISOString().split("T")[0] },
+          }}
           helperText="수탁사가 체크리스트를 작성할 수 있는 마감일입니다."
-          sx={{ mb: 2 }}
+          sx={{
+            mb: 2,
+            "& input::-webkit-calendar-picker-indicator": {
+              filter: "invert(1)",
+            },
+          }}
         />
 
         <FormTextField

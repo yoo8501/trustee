@@ -7,13 +7,9 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import Divider from "@mui/material/Divider";
+import Stack from "@mui/material/Stack";
 import Chip from "@mui/material/Chip";
 import Switch from "@mui/material/Switch";
 import Radio from "@mui/material/Radio";
@@ -33,6 +29,10 @@ import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import CloseIcon from "@mui/icons-material/Close";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { Button, CircularProgress } from "@trustee/ui";
 import type {
   TrusteeChecklistItem,
@@ -48,6 +48,7 @@ import {
   useDeleteEvidence,
   useSubmitChecklist,
   useReopenChecklist,
+  useChecklistResponseReviews,
 } from "@/hooks";
 import { checklistResponseApi } from "@/lib/api";
 
@@ -68,6 +69,143 @@ interface EvidenceFileUploadProps {
 
 const MAX_FILES = 5;
 
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+function isPreviewable(mimeType: string) {
+  return mimeType.startsWith("image/") || mimeType === "application/pdf";
+}
+
+// ── 파일 미리보기 다이얼로그 ──
+function FilePreviewDialog({
+  files,
+  currentIndex,
+  open,
+  onClose,
+  onNavigate,
+}: {
+  files: EvidenceFile[];
+  currentIndex: number;
+  open: boolean;
+  onClose: () => void;
+  onNavigate: (index: number) => void;
+}) {
+  const file = files[currentIndex];
+  if (!file) return null;
+
+  const fileUrl = checklistResponseApi.getFileUrl(file.storagePath);
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < files.length - 1;
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{ sx: { height: "85vh", display: "flex", flexDirection: "column" } }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 2,
+          py: 1,
+          borderBottom: 1,
+          borderColor: "divider",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+          <InsertDriveFileIcon fontSize="small" color="action" />
+          <Typography variant="subtitle2" noWrap>{file.fileName}</Typography>
+          <Typography variant="caption" color="text.secondary">
+            ({formatFileSize(file.fileSize)})
+          </Typography>
+          {files.length > 1 && (
+            <Chip label={`${currentIndex + 1} / ${files.length}`} size="small" variant="outlined" />
+          )}
+        </Box>
+        <IconButton size="small" onClick={onClose} title="닫기">
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </Box>
+
+      <DialogContent
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          p: 0,
+          overflow: "hidden",
+          position: "relative",
+          bgcolor: "background.default",
+        }}
+      >
+        {files.length > 1 && (
+          <>
+            <IconButton
+              onClick={() => onNavigate(currentIndex - 1)}
+              disabled={!hasPrev}
+              sx={{
+                position: "absolute",
+                left: 8,
+                zIndex: 1,
+                bgcolor: "background.paper",
+                boxShadow: 1,
+                "&:hover": { bgcolor: "action.hover" },
+              }}
+            >
+              <NavigateBeforeIcon />
+            </IconButton>
+            <IconButton
+              onClick={() => onNavigate(currentIndex + 1)}
+              disabled={!hasNext}
+              sx={{
+                position: "absolute",
+                right: 8,
+                zIndex: 1,
+                bgcolor: "background.paper",
+                boxShadow: 1,
+                "&:hover": { bgcolor: "action.hover" },
+              }}
+            >
+              <NavigateNextIcon />
+            </IconButton>
+          </>
+        )}
+
+        {file.mimeType.startsWith("image/") ? (
+          <Box
+            component="img"
+            src={fileUrl}
+            alt={file.fileName}
+            sx={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+          />
+        ) : file.mimeType === "application/pdf" ? (
+          <Box
+            component="iframe"
+            src={fileUrl}
+            title={file.fileName}
+            sx={{ width: "100%", height: "100%", border: "none" }}
+          />
+        ) : (
+          <Box sx={{ textAlign: "center", p: 4 }}>
+            <InsertDriveFileIcon sx={{ fontSize: 64, color: "action.active", mb: 2 }} />
+            <Typography variant="body1">
+              미리보기를 지원하지 않는 파일 형식입니다.
+            </Typography>
+          </Box>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 const EvidenceFileUpload = memo(function EvidenceFileUpload({
   itemId,
   files,
@@ -76,6 +214,8 @@ const EvidenceFileUpload = memo(function EvidenceFileUpload({
 }: EvidenceFileUploadProps) {
   const { mutate: uploadFiles, isPending: isUploading } = useUploadEvidence(token);
   const { mutate: deleteFile, isPending: isDeleting } = useDeleteEvidence(token);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files;
@@ -95,88 +235,123 @@ const EvidenceFileUpload = memo(function EvidenceFileUpload({
     deleteFile(fileId);
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes}B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+  const handlePreview = (index: number) => {
+    setPreviewIndex(index);
+    setPreviewOpen(true);
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-      {files.map((file) => (
-        <Box
-          key={file.id}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5,
-            p: 0.5,
-            borderRadius: 1,
-            bgcolor: "grey.50",
-          }}
-        >
-          <InsertDriveFileIcon sx={{ fontSize: 16, color: "action.active" }} />
-          <Typography
-            variant="caption"
+    <>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+        {files.map((file, index) => (
+          <Box
+            key={file.id}
             sx={{
-              flex: 1,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              cursor: "pointer",
-              "&:hover": { textDecoration: "underline" },
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              p: 0.5,
+              borderRadius: 1,
+              bgcolor: "action.hover",
             }}
-            component="a"
-            href={checklistResponseApi.getFileUrl(file.storagePath)}
-            target="_blank"
-            rel="noopener noreferrer"
           >
-            {file.fileName}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {formatFileSize(file.fileSize)}
-          </Typography>
-          {!isReadOnly && (
-            <IconButton
-              size="small"
-              onClick={() => handleDelete(file.id)}
-              disabled={isDeleting}
-              sx={{ p: 0.25 }}
+            {file.mimeType.startsWith("image/") ? (
+              <Box
+                component="img"
+                src={checklistResponseApi.getFileUrl(file.storagePath)}
+                alt={file.fileName}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  objectFit: "cover",
+                  borderRadius: 0.5,
+                  flexShrink: 0,
+                  cursor: "pointer",
+                }}
+                onClick={() => handlePreview(index)}
+              />
+            ) : (
+              <InsertDriveFileIcon sx={{ fontSize: 16, color: "action.active" }} />
+            )}
+            <Typography
+              variant="caption"
+              sx={{
+                flex: 1,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                cursor: isPreviewable(file.mimeType) ? "pointer" : "default",
+                "&:hover": isPreviewable(file.mimeType) ? { textDecoration: "underline" } : {},
+              }}
+              onClick={() => isPreviewable(file.mimeType) && handlePreview(index)}
             >
-              <DeleteIcon sx={{ fontSize: 14 }} />
-            </IconButton>
-          )}
-        </Box>
-      ))}
-      {!isReadOnly && files.length < MAX_FILES && (
-        <Button
-          variant="text"
-          size="small"
-          component="label"
-          startIcon={isUploading ? <CircularProgress size={14} /> : <AttachFileIcon sx={{ fontSize: 14 }} />}
-          disabled={isUploading}
-          sx={{ justifyContent: "flex-start", textTransform: "none", px: 0.5 }}
-        >
-          파일 첨부 ({files.length}/{MAX_FILES})
-          <input
-            type="file"
-            hidden
-            multiple
-            onChange={handleFileSelect}
-            accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.hwp"
-          />
-        </Button>
+              {file.fileName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {formatFileSize(file.fileSize)}
+            </Typography>
+            {isPreviewable(file.mimeType) && (
+              <IconButton size="small" onClick={() => handlePreview(index)} sx={{ p: 0.25 }}>
+                <VisibilityIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            )}
+            {!isReadOnly && (
+              <IconButton
+                size="small"
+                onClick={() => handleDelete(file.id)}
+                disabled={isDeleting}
+                sx={{ p: 0.25 }}
+              >
+                <DeleteIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            )}
+          </Box>
+        ))}
+        {!isReadOnly && files.length < MAX_FILES && (
+          <Button
+            variant="text"
+            size="small"
+            component="label"
+            startIcon={isUploading ? <CircularProgress size={14} /> : <AttachFileIcon sx={{ fontSize: 14 }} />}
+            disabled={isUploading}
+            sx={{ justifyContent: "flex-start", textTransform: "none", px: 0.5 }}
+          >
+            파일 첨부 ({files.length}/{MAX_FILES})
+            <input
+              type="file"
+              hidden
+              multiple
+              onChange={handleFileSelect}
+              accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.hwp"
+            />
+          </Button>
+        )}
+      </Box>
+      {files.length > 0 && (
+        <FilePreviewDialog
+          files={files}
+          currentIndex={previewIndex}
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          onNavigate={setPreviewIndex}
+        />
       )}
-    </Box>
+    </>
   );
 });
 
 // ── 메모이제이션된 개별 항목 행 ──
+interface ItemReviewInfo {
+  status: "approved" | "rejected";
+  reason?: string;
+}
+
 interface ChecklistItemRowProps {
   item: TrusteeChecklistItem;
   itemChange: ItemChange | undefined;
   isReadOnly: boolean;
   token: string;
+  review?: ItemReviewInfo;
   onFieldChange: (itemId: string, field: keyof ItemChange, value: unknown) => void;
 }
 
@@ -185,91 +360,142 @@ const ChecklistItemRow = memo(function ChecklistItemRow({
   itemChange,
   isReadOnly,
   token,
+  review,
   onFieldChange,
 }: ChecklistItemRowProps) {
   const applicable = itemChange?.applicable ?? item.applicable;
   const answer = (itemChange?.answer !== undefined ? itemChange.answer : item.answer) as string || "";
   const currentStatus = (itemChange?.currentStatus ?? item.currentStatus as string) || "";
   const remarks = (itemChange?.remarks ?? item.remarks as string) || "";
+  const isRejected = review?.status === "rejected";
 
   return (
-    <TableRow>
-      <TableCell>{item.no}</TableCell>
-      <TableCell>
-        <Typography variant="body2">{item.question}</Typography>
-        {item.hint && (
-          <Typography variant="caption" color="text.secondary">
-            {item.hint}
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2,
+        ...(isRejected && {
+          borderColor: "error.main",
+          borderWidth: 2,
+        }),
+      }}
+    >
+      {/* 반려 사유 표시 */}
+      {isRejected && review?.reason && (
+        <Alert severity="error" sx={{ mb: 1.5 }}>
+          반려 사유: {review.reason}
+        </Alert>
+      )}
+
+      {/* 헤더: 번호 + 질문 + 대상여부 */}
+      <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2, mb: 1.5 }}>
+        <Box sx={{ flex: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+            <Chip label={item.no} size="small" variant="outlined" />
+            <Typography variant="body2" fontWeight={600}>{item.question}</Typography>
+          </Box>
+          {item.hint && (
+            <Typography variant="caption" color="text.secondary" sx={{ pl: 0.5 }}>
+              {item.hint}
+            </Typography>
+          )}
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
+          <Typography variant="caption" color="text.secondary">대상</Typography>
+          <Switch
+            size="small"
+            checked={applicable}
+            disabled={isReadOnly}
+            onChange={(e) => onFieldChange(item.id, "applicable", e.target.checked)}
+          />
+        </Box>
+      </Box>
+
+      <Divider sx={{ mb: 1.5 }} />
+
+      <Stack spacing={1.5}>
+        {/* 답변 */}
+        <Box>
+          <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 0.5, display: "block" }}>
+            답변
           </Typography>
-        )}
-      </TableCell>
-      <TableCell align="center">
-        <Switch
-          size="small"
-          checked={applicable}
-          disabled={isReadOnly}
-          onChange={(e) => onFieldChange(item.id, "applicable", e.target.checked)}
-        />
-      </TableCell>
-      <TableCell>
-        <RadioGroup
-          row
-          value={answer}
-          onChange={(e) => onFieldChange(item.id, "answer", e.target.value as ChecklistAnswer)}
-        >
-          <FormControlLabel
-            value="yes"
-            control={<Radio size="small" />}
-            label="예"
-            disabled={!applicable || isReadOnly}
-            sx={{ mr: 1 }}
+          <RadioGroup
+            row
+            value={answer}
+            onChange={(e) => onFieldChange(item.id, "answer", e.target.value as ChecklistAnswer)}
+          >
+            <FormControlLabel
+              value="yes"
+              control={<Radio size="small" />}
+              label="예"
+              disabled={!applicable || isReadOnly}
+              sx={{ mr: 2 }}
+            />
+            <FormControlLabel
+              value="no"
+              control={<Radio size="small" />}
+              label="아니오"
+              disabled={!applicable || isReadOnly}
+              sx={{ mr: 2 }}
+            />
+            <FormControlLabel
+              value="not_applicable"
+              control={<Radio size="small" />}
+              label="N/A"
+              disabled={!applicable || isReadOnly}
+            />
+          </RadioGroup>
+        </Box>
+
+        {/* 이행 현황 */}
+        <Box>
+          <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 0.5, display: "block" }}>
+            이행 현황
+          </Typography>
+          <TextField
+            size="small"
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={5}
+            disabled={isReadOnly}
+            value={currentStatus}
+            onChange={(e) => onFieldChange(item.id, "currentStatus", e.target.value)}
+            placeholder="현재 이행 현황을 작성해주세요"
           />
-          <FormControlLabel
-            value="no"
-            control={<Radio size="small" />}
-            label="아니오"
-            disabled={!applicable || isReadOnly}
-            sx={{ mr: 1 }}
+        </Box>
+
+        {/* 증빙 자료 */}
+        <Box>
+          <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 0.5, display: "block" }}>
+            증빙 자료
+          </Typography>
+          <EvidenceFileUpload
+            itemId={item.id}
+            files={item.evidenceFiles || []}
+            isReadOnly={isReadOnly}
+            token={token}
           />
-          <FormControlLabel
-            value="not_applicable"
-            control={<Radio size="small" />}
-            label="N/A"
-            disabled={!applicable || isReadOnly}
+        </Box>
+
+        {/* 비고 */}
+        <Box>
+          <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 0.5, display: "block" }}>
+            비고
+          </Typography>
+          <TextField
+            size="small"
+            fullWidth
+            multiline
+            maxRows={3}
+            disabled={isReadOnly}
+            value={remarks}
+            onChange={(e) => onFieldChange(item.id, "remarks", e.target.value)}
+            placeholder="비고 사항을 입력해주세요"
           />
-        </RadioGroup>
-      </TableCell>
-      <TableCell>
-        <TextField
-          size="small"
-          fullWidth
-          multiline
-          maxRows={3}
-          disabled={isReadOnly}
-          value={currentStatus}
-          onChange={(e) => onFieldChange(item.id, "currentStatus", e.target.value)}
-          placeholder="이행 현황"
-        />
-      </TableCell>
-      <TableCell>
-        <EvidenceFileUpload
-          itemId={item.id}
-          files={item.evidenceFiles || []}
-          isReadOnly={isReadOnly}
-          token={token}
-        />
-      </TableCell>
-      <TableCell>
-        <TextField
-          size="small"
-          fullWidth
-          disabled={isReadOnly}
-          value={remarks}
-          onChange={(e) => onFieldChange(item.id, "remarks", e.target.value)}
-          placeholder="비고"
-        />
-      </TableCell>
-    </TableRow>
+        </Box>
+      </Stack>
+    </Paper>
   );
 });
 
@@ -279,6 +505,7 @@ interface ChecklistSectionProps {
   changes: Record<string, ItemChange>;
   isReadOnly: boolean;
   token: string;
+  reviewMap: Map<string, ItemReviewInfo>;
   onFieldChange: (itemId: string, field: keyof ItemChange, value: unknown) => void;
 }
 
@@ -287,6 +514,7 @@ const ChecklistSectionBlock = memo(function ChecklistSectionBlock({
   changes,
   isReadOnly,
   token,
+  reviewMap,
   onFieldChange,
 }: ChecklistSectionProps) {
   return (
@@ -305,33 +533,19 @@ const ChecklistSectionBlock = memo(function ChecklistSectionBlock({
         </Box>
       </AccordionSummary>
       <AccordionDetails>
-        <TableContainer component={Paper} variant="outlined">
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: 70 }}>No</TableCell>
-                <TableCell sx={{ minWidth: 200 }}>통제 항목</TableCell>
-                <TableCell sx={{ width: 70 }} align="center">대상</TableCell>
-                <TableCell sx={{ width: 200 }}>답변</TableCell>
-                <TableCell sx={{ minWidth: 150 }}>현황</TableCell>
-                <TableCell sx={{ minWidth: 150 }}>증빙 자료</TableCell>
-                <TableCell sx={{ minWidth: 120 }}>비고</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {section.items.map((item) => (
-                <ChecklistItemRow
-                  key={item.id}
-                  item={item}
-                  itemChange={changes[item.id]}
-                  isReadOnly={isReadOnly}
-                  token={token}
-                  onFieldChange={onFieldChange}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Stack spacing={1.5}>
+          {section.items.map((item) => (
+            <ChecklistItemRow
+              key={item.id}
+              item={item}
+              itemChange={changes[item.id]}
+              isReadOnly={isReadOnly}
+              token={token}
+              review={reviewMap.get(item.id)}
+              onFieldChange={onFieldChange}
+            />
+          ))}
+        </Stack>
       </AccordionDetails>
     </Accordion>
   );
@@ -340,6 +554,7 @@ const ChecklistSectionBlock = memo(function ChecklistSectionBlock({
   if (prev.isReadOnly !== next.isReadOnly) return false;
   if (prev.section !== next.section) return false;
   if (prev.onFieldChange !== next.onFieldChange) return false;
+  if (prev.reviewMap !== next.reviewMap) return false;
 
   // 이 섹션에 속한 아이템들의 changes만 비교
   for (const item of prev.section.items) {
@@ -356,6 +571,7 @@ export default function ChecklistResponsePage() {
   const { mutate: batchSave, isPending: isSaving } = useBatchSaveResponse(token);
   const { mutate: submitChecklist, isPending: isSubmitting } = useSubmitChecklist(token);
   const { mutate: reopenChecklist, isPending: isReopening } = useReopenChecklist(token);
+  const { data: reviewsData } = useChecklistResponseReviews(token);
 
   const [changes, setChanges] = useState<Record<string, ItemChange>>({});
   const [contactName, setContactName] = useState("");
@@ -469,6 +685,13 @@ export default function ChecklistResponsePage() {
     }
   };
 
+  // 반려 검토 결과 맵핑 (메모이제이션으로 불필요한 섹션 리렌더 방지)
+  const reviews = reviewsData?.data || [];
+  const reviewMap = useMemo(
+    () => new Map(reviews.map((r) => [r.itemId, r])),
+    [reviews]
+  );
+
   // 진행률 계산 - debounce된 changes 수로 계산
   const checklist = data?.data;
   const { totalItems, answeredItems, progress } = useMemo(() => {
@@ -563,6 +786,11 @@ export default function ChecklistResponsePage() {
         {checklist.status === "reviewed" && (
           <Alert severity="success" sx={{ mt: 2 }}>
             위탁사 검토가 완료되었습니다.
+          </Alert>
+        )}
+        {checklist.status === "rejected" && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            반려되었습니다. 반려 사유를 확인하고 보완 후 재제출해주세요.
           </Alert>
         )}
         {canReopen && (
@@ -679,6 +907,7 @@ export default function ChecklistResponsePage() {
                   changes={changes}
                   isReadOnly={isReadOnly}
                   token={token}
+                  reviewMap={reviewMap}
                   onFieldChange={updateItemField}
                 />
               ))}

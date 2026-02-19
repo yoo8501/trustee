@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AddIcon from "@mui/icons-material/Add";
 import Chip from "@mui/material/Chip";
+import Typography from "@mui/material/Typography";
 import {
   PageHeader,
   Button,
@@ -11,11 +12,15 @@ import {
   FormSelect,
   Box,
   CircularProgress,
+  GradeBadge,
   type Column,
 } from "@trustee/ui";
 import { spacing } from "@trustee/ui";
 import type { TrusteeChecklist } from "@trustee/types";
 import { useTrusteeChecklists } from "@/hooks";
+import { InspectionStatusChip, type InspectionStatus } from "@/components/InspectionStatusChip";
+import { ChecklistProgressBar } from "@/components/ChecklistProgressBar";
+import { scoreToUIGrade } from "@/lib/inspection-utils";
 
 const statusOptions = [
   { value: "", label: "전체" },
@@ -26,21 +31,11 @@ const statusOptions = [
   { value: "reviewed", label: "검토완료" },
 ];
 
-const statusColorMap: Record<string, "default" | "info" | "warning" | "success" | "primary"> = {
-  draft: "default",
-  sent: "info",
-  in_progress: "warning",
-  submitted: "primary",
-  reviewed: "success",
-};
-
-const statusLabelMap: Record<string, string> = {
-  draft: "초안",
-  sent: "전달됨",
-  in_progress: "작성중",
-  submitted: "제출완료",
-  reviewed: "검토완료",
-};
+function calculateProgress(row: TrusteeChecklist): { completed: number; total: number } {
+  const total = (row as unknown as Record<string, number>).totalItemCount || 0;
+  const completed = (row as unknown as Record<string, number>).answeredCount || 0;
+  return { completed, total };
+}
 
 export default function ChecklistsPage() {
   const router = useRouter();
@@ -68,12 +63,31 @@ export default function ChecklistsPage() {
       label: "상태",
       minWidth: 100,
       render: (row) => (
-        <Chip
-          label={statusLabelMap[row.status] || row.status}
-          color={statusColorMap[row.status] || "default"}
-          size="small"
-        />
+        <InspectionStatusChip status={row.status as InspectionStatus} />
       ),
+    },
+    {
+      id: "totalScore" as keyof TrusteeChecklist,
+      label: "점수/등급",
+      minWidth: 140,
+      render: (row) => {
+        const score = (row as unknown as Record<string, number | null>).totalScore;
+        const grade = (row as unknown as Record<string, string | null>).grade;
+        if (score != null && grade) {
+          const uiGrade = scoreToUIGrade(score);
+          return (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography variant="body2">{score}점</Typography>
+              <GradeBadge grade={uiGrade} size="sm" />
+            </Box>
+          );
+        }
+        if (row.status === "in_progress") {
+          const { completed, total } = calculateProgress(row);
+          return <ChecklistProgressBar completed={completed} total={total} />;
+        }
+        return <Typography variant="body2" color="text.disabled">-</Typography>;
+      },
     },
     {
       id: "contactName",

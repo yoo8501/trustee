@@ -4,6 +4,7 @@ import type {
   UpdateTrusteeChecklistItemInput,
   BatchUpdateChecklistItemsInput,
   SubmitTrusteeChecklistInput,
+  ItemReview,
 } from "@trustee/types";
 
 import { apiClient } from "./client";
@@ -73,5 +74,9 @@ export const checklistResponseApi = {
 
   reopen(token: string): Promise<ChecklistResponseData> {
     return apiClient.post(`/api/checklist-response/${token}/reopen`);
+  },
+
+  getReviews(token: string): Promise<{ data: ItemReview[] }> {
+    return apiClient.get(`/api/checklist-response/${token}/reviews`);
   },
 };
