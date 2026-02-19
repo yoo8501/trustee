@@ -4,6 +4,44 @@
 
 ---
 
+## [2026-02-20] - 체크리스트 검토/반려 플로우 완료
+
+### Added
+- 반려 처리 기능
+  - POST `/api/trustee-checklists/:id/reject`: 항목별 반려/승인 + 새 기한 설정
+  - 반려 다이얼로그: 항목별 체크박스 + 사유 입력
+  - 위탁사 UI: RejectDialog, DiffView
+  - 수탁사 UI: 반려 상태 표시 및 사유 확인
+- 변경사항 비교 (Diff) 기능
+  - GET `/api/trustee-checklists/:id/diff`: 스냅샷 기반 변경사항 비교
+  - ChecklistSnapshot 모델: 제출 시점 JSON 스냅샷
+  - DiffView: 노란색 하이라이트 + 이전값 → 현재값 표시
+- 검토 이력 추적
+  - GET `/api/trustee-checklists/:id/reviews`: 위탁사 검토 이력
+  - GET `/api/checklist-response/:token/reviews`: 수탁사 반려 사유
+  - ItemReview 모델: 항목별 검토 결과 저장
+- 5개 React Query 훅: useRejectChecklist, useReviewChecklist, useChecklistDiff, useChecklistReviews, useChecklistResponseReviews
+
+### Changed
+- TrusteeChecklistStatus enum: `rejected` 상태 추가
+- TrusteeChecklist 모델: `reviewRound` 필드 추가
+- ChecklistResponseService.validateEditable(): rejected 상태 편집 허용
+- ChecklistResponseService.submit(): 스냅샷 자동 생성
+
+### Fixed
+- 반려 시 기한 재설정: `accessTokenExpiresAt` 업데이트
+- 토큰 재사용: 기존 링크 유지, 기한만 변경
+- 반려 상태에서 재편집 가능: 기한 내 수정 허용
+
+### Details
+- **Match Rate**: 100% (91/91 항목)
+- **Iteration Count**: 0 (첫 분석에서 완벽)
+- **Architecture Compliance**: 100%
+- **Convention Compliance**: 100%
+- **완료 보고서**: docs/04-report/features/checklist-review-rejection.report.md
+
+---
+
 ## [2026-02-17] - Design System 완료
 
 ### Added
