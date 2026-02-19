@@ -97,14 +97,14 @@ export const typography = {
   },
 
   fontSize: {
-    micro: "0.6875rem",
-    mini: "0.75rem",
-    small: "0.8125rem",
-    regular: "0.9375rem",
-    large: "1.125rem",
-    title3: "1.25rem",
-    title2: "1.5rem",
-    title1: "2.25rem",
+    micro: "0.9375rem",
+    mini: "1rem",
+    small: "1.0625rem",
+    regular: "1.25rem",
+    large: "1.375rem",
+    title3: "1.5625rem",
+    title2: "1.875rem",
+    title1: "2.8125rem",
   },
 } as const;
 
@@ -146,4 +146,27 @@ export const focusRing = {
   color: "#5e6ad2",
   width: "2px",
   offset: "2px",
+} as const;
+
+export const inspectionColors = {
+  grade: {
+    aPlus: { bg: "#27a64418", border: "#27a64433", text: "#27a644", label: "A+" },
+    a:     { bg: "#4ea7fc18", border: "#4ea7fc33", text: "#4ea7fc", label: "A" },
+    bPlus: { bg: "#00b8cc18", border: "#00b8cc33", text: "#00b8cc", label: "B+" },
+    b:     { bg: "#f0bf0018", border: "#f0bf0033", text: "#f0bf00", label: "B" },
+    c:     { bg: "#fc784018", border: "#fc784033", text: "#fc7840", label: "C" },
+    d:     { bg: "#eb575718", border: "#eb575733", text: "#eb5757", label: "D" },
+  },
+  answer: {
+    yes: { bg: "#27a64412", border: "#27a644", text: "#27a644" },
+    no:  { bg: "#fc784012", border: "#fc7840", text: "#fc7840" },
+    na:  { bg: "#62666d12", border: "#62666d", text: "#62666d" },
+  },
+  status: {
+    draft:       { bg: "#62666d18", text: "#8a8f98", label: "초안" },
+    sent:        { bg: "#4ea7fc18", text: "#4ea7fc", label: "전달됨" },
+    in_progress: { bg: "#f0bf0018", text: "#f0bf00", label: "작성중" },
+    submitted:   { bg: "#5e6ad218", text: "#7170ff", label: "제출완료" },
+    reviewed:    { bg: "#27a64418", text: "#27a644", label: "검토완료" },
+  },
 } as const;

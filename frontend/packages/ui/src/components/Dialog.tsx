@@ -63,7 +63,7 @@ export function Dialog({
           <CloseIcon fontSize="small" />
         </MuiIconButton>
       </DialogTitle>
-      <DialogContent sx={{ py: 2.5, px: 2.5 }}>{children}</DialogContent>
+      <DialogContent style={{padding:'16px'}}>{children}</DialogContent>
       {actions && (
         <DialogActions
           sx={{
