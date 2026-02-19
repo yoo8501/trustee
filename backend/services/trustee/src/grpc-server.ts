@@ -23,11 +23,8 @@ export function startGrpcServer(repository: TrusteeRepository) {
         callback(null, {
           id: trustee.id,
           companyName: trustee.companyName,
-          businessNumber: trustee.businessNumber,
-          representative: trustee.representative,
-          contactName: trustee.contactName,
-          contactPhone: trustee.contactPhone,
-          contactEmail: trustee.contactEmail,
+          businessNumber: trustee.businessNumber || "",
+          representative: trustee.representative || "",
           delegatedTasks: trustee.delegatedTasks,
           status: trustee.status,
           createdAt: trustee.createdAt.toISOString(),

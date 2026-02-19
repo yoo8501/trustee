@@ -1,6 +1,6 @@
 // Theme
 export { theme } from "./theme";
-export { colors, typography, radius, shadows, spacing, animation, focusRing } from "./theme/tokens";
+export { colors, typography, radius, shadows, spacing, animation, focusRing, inspectionColors } from "./theme/tokens";
 
 // Components
 export { Button, type ButtonProps } from "./components/Button";
@@ -29,6 +29,7 @@ export { PageHeader, type PageHeaderProps } from "./components/PageHeader";
 export { StatCard, type StatCardProps } from "./components/StatCard";
 export { IconButton, type IconButtonProps } from "./components/IconButton";
 export { Kbd, type KbdProps } from "./components/Kbd";
+export { GradeBadge, type GradeBadgeProps, type UIGrade } from "./components/GradeBadge";
 
 // Re-export commonly used MUI components
 export {

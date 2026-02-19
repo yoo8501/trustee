@@ -52,3 +52,218 @@ model InspectionItem {
 
   @@map("inspection_items")
 }
+
+// ──────────────────────────────────────
+// Root 템플릿
+// ──────────────────────────────────────
+
+model ChecklistTemplate {
+  id          String   @id @default(cuid())
+  title       String
+  version     String   @default("1.0")
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  categories ChecklistCategory[]
+
+  @@map("checklist_templates")
+}
+
+model ChecklistCategory {
+  id         String @id @default(cuid())
+  templateId String @map("template_id")
+  no         Int
+  name       String
+  sortOrder  Int    @default(0) @map("sort_order")
+  weight     Int    @default(0)
+
+  template ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  sections ChecklistSection[]
+
+  @@map("checklist_categories")
+}
+
+model ChecklistSection {
+  id         String @id @default(cuid())
+  categoryId String @map("category_id")
+  no         String
+  name       String
+  sortOrder  Int    @default(0) @map("sort_order")
+
+  category ChecklistCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  items    ChecklistItem[]
+
+  @@map("checklist_sections")
+}
+
+model ChecklistItem {
+  id         String  @id @default(cuid())
+  sectionId  String  @map("section_id")
+  no         String
+  question   String  @db.Text
+  hint       String? @db.Text
+  sortOrder  Int     @default(0) @map("sort_order")
+  isCritical Boolean @default(false) @map("is_critical")
+
+  section ChecklistSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@map("checklist_items")
+}
+
+// ──────────────────────────────────────
+// 수탁사별 체크리스트 (스냅샷)
+// ──────────────────────────────────────
+
+enum TrusteeChecklistStatus {
+  draft
+  sent
+  in_progress
+  submitted
+  reviewed
+  rejected
+}
+
+enum ChecklistAnswer {
+  yes
+  no
+  not_applicable
+}
+
+model TrusteeChecklist {
+  id              String                 @id @default(cuid())
+  trusteeId       String                 @map("trustee_id")
+  templateId      String?                @map("template_id")
+  templateVersion String?                @map("template_version")
+  title           String
+  inspectionScope String?                @map("inspection_scope") @db.Text
+  status          TrusteeChecklistStatus @default(draft)
+  submittedAt     DateTime?              @map("submitted_at")
+  createdAt       DateTime               @default(now()) @map("created_at")
+  updatedAt       DateTime               @updatedAt @map("updated_at")
+
+  // 토큰 기반 접근
+  accessToken          String    @unique @default(uuid()) @map("access_token")
+  accessTokenExpiresAt DateTime  @map("access_token_expires_at")
+
+  // 제출 횟수
+  submissionCount Int @default(0) @map("submission_count")
+
+  // 작성자 정보 (수탁사 담당자가 제출 시 입력)
+  contactName  String? @map("contact_name")
+  contactEmail String? @map("contact_email")
+  contactPhone String? @map("contact_phone")
+
+  // 스코어링 결과
+  totalScore   Float?    @map("total_score")
+  grade        String?   @db.VarChar(2)
+  scoreDetail  Json?     @map("score_detail")
+  scoredAt     DateTime? @map("scored_at")
+
+  // 진행률 캐시
+  totalItemCount Int @default(0) @map("total_item_count")
+  answeredCount  Int @default(0) @map("answered_count")
+
+  // 검토 차수 (반려→재제출 사이클 카운트)
+  reviewRound Int @default(0) @map("review_round")
+
+  categories TrusteeChecklistCategory[]
+  reviews    ItemReview[]
+  snapshots  ChecklistSnapshot[]
+
+  @@map("trustee_checklists")
+}
+
+model TrusteeChecklistCategory {
+  id          String @id @default(cuid())
+  checklistId String @map("checklist_id")
+  no          Int
+  name        String
+  sortOrder   Int    @default(0) @map("sort_order")
+  weight      Int    @default(0)
+
+  checklist TrusteeChecklist          @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  sections  TrusteeChecklistSection[]
+
+  @@map("trustee_checklist_categories")
+}
+
+model TrusteeChecklistSection {
+  id         String @id @default(cuid())
+  categoryId String @map("category_id")
+  no         String
+  name       String
+  sortOrder  Int    @default(0) @map("sort_order")
+
+  category TrusteeChecklistCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  items    TrusteeChecklistItem[]
+
+  @@map("trustee_checklist_sections")
+}
+
+model TrusteeChecklistItem {
+  id            String           @id @default(cuid())
+  sectionId     String           @map("section_id")
+  no            String
+  question      String           @db.Text
+  hint          String?          @db.Text
+  sortOrder     Int              @default(0) @map("sort_order")
+  applicable    Boolean          @default(true)
+  answer        ChecklistAnswer?
+  currentStatus String?          @map("current_status") @db.Text
+  remarks       String?          @db.Text
+  isCritical    Boolean          @default(false) @map("is_critical")
+
+  section       TrusteeChecklistSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  evidenceFiles EvidenceFile[]
+
+  @@map("trustee_checklist_items")
+}
+
+// ──────────────────────────────────────
+// 검토/반려
+// ──────────────────────────────────────
+
+model ItemReview {
+  id          String   @id @default(cuid())
+  checklistId String   @map("checklist_id")
+  itemId      String   @map("item_id")
+  status      String   // "approved" | "rejected"
+  reason      String?  @db.Text
+  reviewedAt  DateTime @default(now()) @map("reviewed_at")
+  reviewRound Int      @map("review_round")
+
+  checklist TrusteeChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@index([checklistId, reviewRound])
+  @@index([itemId])
+  @@map("item_reviews")
+}
+
+model ChecklistSnapshot {
+  id          String   @id @default(cuid())
+  checklistId String   @map("checklist_id")
+  round       Int
+  data        Json
+  submittedAt DateTime @map("submitted_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  checklist TrusteeChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@unique([checklistId, round])
+  @@map("checklist_snapshots")
+}
+
+model EvidenceFile {
+  id          String @id @default(cuid())
+  itemId      String @map("item_id")
+  fileName    String @map("file_name")
+  fileSize    Int    @map("file_size")
+  mimeType    String @map("mime_type")
+  storagePath String @map("storage_path")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  item TrusteeChecklistItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("evidence_files")
+}

@@ -35,3 +35,10 @@ export class ConflictError extends AppError {
     this.name = "ConflictError";
   }
 }
+
+export class ForbiddenError extends AppError {
+  constructor(message = "Forbidden") {
+    super(message, 403, "FORBIDDEN");
+    this.name = "ForbiddenError";
+  }
+}

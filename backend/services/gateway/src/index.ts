@@ -15,13 +15,25 @@ const logger = createLogger("gateway");
 
 const app = express();
 
-// 기본 미들웨어
-app.use(helmet());
+// 기본 미들웨어 - 파일 다운로드 경로는 helmet 우회 (iframe 미리보기 허용)
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/checklist-response/files")) {
+    return next();
+  }
+  helmet()(req, res, next);
+});
 app.use(cors({
   origin: process.env.CORS_ORIGIN || "http://localhost:3000",
   credentials: true,
 }));
-app.use(express.json());
+
+app.use((req, res, next) => {
+  // 파일 업로드 경로는 body 파싱 건너뛰기 (multipart 스트리밍)
+  if (req.path.includes("/files")) {
+    return next();
+  }
+  express.json()(req, res, next);
+});
 app.use(cookieParser());
 
 // Rate limiter

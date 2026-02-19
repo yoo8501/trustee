@@ -1,21 +1,50 @@
 export * from "./events";
 export * from "./api";
 export * from "./auth";
+export * from "./checklist";
+export * from "./scoring";
 
 // 수탁사 상태
 export type TrusteeStatus = "active" | "inactive" | "pending";
+
+// 담당자 정보
+export interface TrusteeContact {
+  id: string;
+  trusteeId: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  department?: string;
+  position?: string;
+  isPrimary: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// 담당자 생성 입력
+export interface CreateTrusteeContactInput {
+  name: string;
+  phone?: string;
+  email?: string;
+  department?: string;
+  position?: string;
+  isPrimary: boolean;
+}
+
+// 담당자 수정 입력
+export interface UpdateTrusteeContactInput extends Partial<CreateTrusteeContactInput> {
+  id?: string;
+}
 
 // 수탁사 정보
 export interface Trustee {
   id: string;
   companyName: string;
-  businessNumber: string;
-  representative: string;
-  contactName: string;
-  contactPhone: string;
-  contactEmail: string;
+  businessNumber?: string;
+  representative?: string;
   delegatedTasks: string;
   status: TrusteeStatus;
+  contacts: TrusteeContact[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,17 +52,22 @@ export interface Trustee {
 // 수탁사 생성 입력
 export interface CreateTrusteeInput {
   companyName: string;
-  businessNumber: string;
-  representative: string;
-  contactName: string;
-  contactPhone: string;
-  contactEmail: string;
+  businessNumber?: string;
+  representative?: string;
   delegatedTasks: string;
   status?: TrusteeStatus;
+  contacts: CreateTrusteeContactInput[];
 }
 
 // 수탁사 수정 입력
-export type UpdateTrusteeInput = Partial<CreateTrusteeInput>;
+export interface UpdateTrusteeInput {
+  companyName?: string;
+  businessNumber?: string;
+  representative?: string;
+  delegatedTasks?: string;
+  status?: TrusteeStatus;
+  contacts?: UpdateTrusteeContactInput[];
+}
 
 // 계약 정보
 export interface Contract {

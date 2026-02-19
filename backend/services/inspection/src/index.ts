@@ -1,16 +1,16 @@
 import express from "express";
-import cors from "cors";
 import helmet from "helmet";
 import { createLogger, errorHandler, RabbitMQClient } from "@trustee/common";
 import { EXCHANGE_NAME } from "@trustee/types";
 
 import { config } from "./config";
-import { InspectionRepository, InspectionItemRepository } from "./repositories";
-import { InspectionService, InspectionItemService } from "./services";
-import { InspectionController, InspectionItemController } from "./controllers";
-import { createInspectionRoutes, createInspectionItemRoutes } from "./routes";
+import { InspectionRepository, InspectionItemRepository, ChecklistTemplateRepository, TrusteeChecklistRepository } from "./repositories";
+import { InspectionService, InspectionItemService, ChecklistTemplateService, TrusteeChecklistService, ChecklistResponseService, ScoringService } from "./services";
+import { InspectionController, InspectionItemController, ChecklistTemplateController, TrusteeChecklistController, ChecklistResponseController } from "./controllers";
+import { createInspectionRoutes, createInspectionItemRoutes, createChecklistTemplateRoutes, createTrusteeChecklistRoutes, createChecklistResponseRoutes } from "./routes";
 import { startGrpcServer } from "./grpc-server";
 import { setupEventHandlers } from "./event-handlers";
+import { LocalStorageProvider } from "./storage";
 
 const logger = createLogger("inspection-service");
 
@@ -18,6 +18,8 @@ async function main() {
   // Repositories
   const inspectionRepository = new InspectionRepository();
   const inspectionItemRepository = new InspectionItemRepository();
+  const checklistTemplateRepository = new ChecklistTemplateRepository();
+  const trusteeChecklistRepository = new TrusteeChecklistRepository();
 
   // RabbitMQ
   let rabbitmq: RabbitMQClient | null = null;
@@ -43,14 +45,39 @@ async function main() {
     await setupEventHandlers(rabbitmq, inspectionService);
   }
 
+  // Scoring Service
+  const scoringService = new ScoringService();
+
+  // Checklist Services
+  const checklistTemplateService = new ChecklistTemplateService(checklistTemplateRepository);
+  const trusteeChecklistService = new TrusteeChecklistService(
+    trusteeChecklistRepository,
+    checklistTemplateRepository,
+    rabbitmq,
+    scoringService
+  );
+
+  // Storage Provider
+  const storageProvider = new LocalStorageProvider();
+
+  // Checklist Response Service (수탁사 토큰 API)
+  const checklistResponseService = new ChecklistResponseService(
+    trusteeChecklistRepository,
+    rabbitmq,
+    storageProvider,
+    scoringService
+  );
+
   // Controllers
   const inspectionController = new InspectionController(inspectionService);
   const inspectionItemController = new InspectionItemController(inspectionItemService);
+  const checklistTemplateController = new ChecklistTemplateController(checklistTemplateService);
+  const trusteeChecklistController = new TrusteeChecklistController(trusteeChecklistService);
+  const checklistResponseController = new ChecklistResponseController(checklistResponseService);
 
   // Express App
   const app = express();
   app.use(helmet());
-  app.use(cors());
   app.use(express.json());
 
   // Health check
@@ -66,6 +93,9 @@ async function main() {
   // Routes
   app.use("/api/inspections", createInspectionRoutes(inspectionController));
   app.use("/api/inspection-items", createInspectionItemRoutes(inspectionItemController));
+  app.use("/api/checklist-templates", createChecklistTemplateRoutes(checklistTemplateController));
+  app.use("/api/trustee-checklists", createTrusteeChecklistRoutes(trusteeChecklistController));
+  app.use("/api/checklist-response", createChecklistResponseRoutes(checklistResponseController));
 
   // Error handler
   app.use(errorHandler);

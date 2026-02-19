@@ -67,6 +67,26 @@ class ApiClient {
   async delete(path: string): Promise<void> {
     return this.request(path, { method: "DELETE" });
   }
+
+  async uploadFiles<T>(path: string, files: File[]): Promise<T> {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+
+    const url = this.buildUrl(path);
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => null);
+      const message = errorBody?.error?.message || `HTTP ${response.status}`;
+      throw new ApiError(message, response.status, errorBody?.error?.code);
+    }
+
+    return response.json();
+  }
 }
 
 export class ApiError extends Error {
