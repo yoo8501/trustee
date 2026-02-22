@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 import {
   PageHeader,
   Button,
@@ -17,13 +20,13 @@ import {
 } from "@trustee/ui";
 import { spacing } from "@trustee/ui";
 import type { TrusteeChecklist } from "@trustee/types";
-import { useTrusteeChecklists } from "@/hooks";
+import { useTrusteeChecklists, useTrusteeMap } from "@/hooks";
 import { InspectionStatusChip, type InspectionStatus } from "@/components/InspectionStatusChip";
 import { ChecklistProgressBar } from "@/components/ChecklistProgressBar";
 import { scoreToUIGrade } from "@/lib/inspection-utils";
 
 const statusOptions = [
-  { value: "", label: "전체" },
+  { value: "all", label: "전체" },
   { value: "draft", label: "초안" },
   { value: "sent", label: "전달됨" },
   { value: "in_progress", label: "작성중" },
@@ -41,12 +44,24 @@ export default function ChecklistsPage() {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const trusteeMap = useTrusteeMap();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const { data, isLoading } = useTrusteeChecklists({
     page: page + 1,
     limit: rowsPerPage,
-    status: statusFilter || undefined,
+    status: statusFilter === "all" ? undefined : statusFilter,
+    search: debouncedSearch || undefined,
   });
 
   const columns: Column<TrusteeChecklist>[] = [
@@ -58,6 +73,12 @@ export default function ChecklistsPage() {
       render: (_row, index) => page * rowsPerPage + index + 1,
     },
     { id: "title", label: "제목", minWidth: 200 },
+    {
+      id: "trusteeName" as keyof TrusteeChecklist,
+      label: "수탁사",
+      minWidth: 120,
+      render: (row) => trusteeMap.get(row.trusteeId) || "-",
+    },
     {
       id: "status",
       label: "상태",
@@ -115,19 +136,6 @@ export default function ChecklistsPage() {
       },
     },
     {
-      id: "submissionCount" as keyof TrusteeChecklist,
-      label: "제출",
-      minWidth: 60,
-      align: "center" as const,
-      render: (row) => (row as unknown as Record<string, number>).submissionCount || 0,
-    },
-    {
-      id: "createdAt",
-      label: "생성일",
-      minWidth: 120,
-      render: (row) => new Date(row.createdAt).toLocaleDateString("ko-KR"),
-    },
-    {
       id: "submittedAt",
       label: "제출일",
       minWidth: 120,
@@ -161,11 +169,27 @@ export default function ChecklistsPage() {
       />
 
       <Box sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center" }}>
+        <TextField
+          size="small"
+          placeholder="제목, 작성자 검색..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{ minWidth: 250 }}
+        />
         <FormSelect
           label="상태"
           name="statusFilter"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as string)}
+          onChange={(e) => { setStatusFilter(e.target.value as string); setPage(0); }}
           options={statusOptions}
           sx={{ minWidth: 120 }}
         />
