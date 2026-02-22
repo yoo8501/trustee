@@ -85,9 +85,7 @@ export default function NewChecklistPage() {
             router.push("/inspections/checklists");
           }
         },
-        onError: (err) => {
-          setError(err instanceof Error ? err.message : "생성에 실패했습니다.");
-        },
+        // onError는 QueryProvider 전역 핸들러가 자동 처리
       }
     );
   };

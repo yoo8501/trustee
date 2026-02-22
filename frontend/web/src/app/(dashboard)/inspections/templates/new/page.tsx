@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
+import Paper from "@mui/material/Paper";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import {
   PageHeader,
   Button,
@@ -18,6 +20,36 @@ export default function NewTemplatePage() {
   const { mutate: importTemplate, isPending } = useImportChecklistTemplate();
   const [jsonText, setJsonText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleFileContent = useCallback((text: string) => {
+    setJsonText(text);
+    setError(null);
+  }, []);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      handleFileContent(event.target?.result as string);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      handleFileContent(event.target?.result as string);
+    };
+    reader.readAsText(file);
+  }, [handleFileContent]);
 
   const handleImport = () => {
     setError(null);
@@ -34,9 +66,6 @@ export default function NewTemplatePage() {
         onSuccess: () => {
           router.push("/inspections/templates");
         },
-        onError: (err) => {
-          setError(err instanceof Error ? err.message : "Import에 실패했습니다.");
-        },
       });
     } catch {
       setError("유효한 JSON 형식이 아닙니다.");
@@ -47,7 +76,7 @@ export default function NewTemplatePage() {
     <Box sx={{ p: `${spacing.pageInset}px` }}>
       <PageHeader
         title="템플릿 생성"
-        description="JSON 파일을 붙여넣어 체크리스트 템플릿을 생성합니다."
+        description="JSON 파일을 업로드하거나 붙여넣어 체크리스트 템플릿을 생성합니다."
       />
 
       <Box sx={{ maxWidth: 800 }}>
@@ -57,8 +86,42 @@ export default function NewTemplatePage() {
           </Alert>
         )}
 
+        {/* 파일 업로드 영역 */}
+        <Paper
+          variant="outlined"
+          component="label"
+          onDragOver={(e: React.DragEvent) => { e.preventDefault(); setIsDragOver(true); }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={handleDrop}
+          sx={{
+            p: 3,
+            mb: 2,
+            textAlign: "center",
+            border: "2px dashed",
+            borderColor: isDragOver ? "primary.main" : "divider",
+            bgcolor: isDragOver ? "action.hover" : "transparent",
+            cursor: "pointer",
+            transition: "all 0.2s",
+            "&:hover": { borderColor: "primary.main", bgcolor: "action.hover" },
+          }}
+        >
+          <UploadFileIcon sx={{ fontSize: 40, color: "text.secondary", mb: 1 }} />
+          <Typography variant="body2" color="text.secondary">
+            JSON 파일을 드래그하거나 클릭하여 업로드하세요
+          </Typography>
+          <Typography variant="caption" color="text.disabled">
+            .json 파일만 지원됩니다
+          </Typography>
+          <input
+            type="file"
+            accept=".json,application/json"
+            hidden
+            onChange={handleFileUpload}
+          />
+        </Paper>
+
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          inspection-checklist-template.json 형식의 JSON을 붙여넣으세요.
+          또는 JSON을 직접 붙여넣으세요
         </Typography>
 
         <FormTextField

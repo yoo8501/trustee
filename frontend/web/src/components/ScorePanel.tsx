@@ -23,7 +23,7 @@ export function ScorePanel({ score, distribution }: ScorePanelProps) {
   const grade = scoreToUIGrade(score);
   const yesPercent = Math.round((distribution.yes / distribution.total) * 100);
   const noPercent = Math.round((distribution.no / distribution.total) * 100);
-  const naPercent = 100 - yesPercent - noPercent;
+  const naPercent = Math.max(0, Math.round((distribution.na / distribution.total) * 100));
 
   return (
     <Paper variant="outlined" sx={{ p: 3 }}>

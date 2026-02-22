@@ -18,6 +18,7 @@ export function useTrusteeChecklists(params?: {
   limit?: number;
   trusteeId?: string;
   status?: string;
+  search?: string;
 }) {
   return useQuery({
     queryKey: [...CHECKLISTS_KEY, params],

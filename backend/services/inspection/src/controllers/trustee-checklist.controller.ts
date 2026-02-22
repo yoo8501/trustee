@@ -7,12 +7,13 @@ export class TrusteeChecklistController {
 
   list = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, trusteeId, status } = req.query;
+      const { page, limit, trusteeId, status, search } = req.query;
       const result = await this.service.list({
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
         trusteeId: trusteeId as string,
         status: status as string,
+        search: search as string,
       });
       res.json({ data: result.data, total: result.total });
     } catch (error) {

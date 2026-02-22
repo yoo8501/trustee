@@ -26,6 +26,7 @@ interface ListParams {
   limit?: number;
   trusteeId?: string;
   status?: string;
+  search?: string;
 }
 
 export class TrusteeChecklistService {
@@ -44,6 +45,12 @@ export class TrusteeChecklistService {
     const where: Record<string, unknown> = {};
     if (params.trusteeId) where.trusteeId = params.trusteeId;
     if (params.status) where.status = params.status;
+    if (params.search) {
+      where.OR = [
+        { title: { contains: params.search } },
+        { contactName: { contains: params.search } },
+      ];
+    }
 
     return this.repository.findAll({ skip, take: limit, where });
   }
