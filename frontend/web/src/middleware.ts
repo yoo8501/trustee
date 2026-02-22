@@ -6,12 +6,22 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/design-system",
+];
+
+// 로그인 상태와 무관하게 항상 접근 가능한 경로
+const ALWAYS_PUBLIC_PATHS = [
   "/checklist",
 ];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("accessToken")?.value;
+
+  // 항상 접근 가능한 경로 (로그인 여부 무관)
+  const isAlwaysPublic = ALWAYS_PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+  if (isAlwaysPublic) {
+    return NextResponse.next();
+  }
 
   const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 

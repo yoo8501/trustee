@@ -26,6 +26,7 @@ import DialogActions from "@mui/material/DialogActions";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -691,6 +692,23 @@ export default function ChecklistResponsePage() {
 
   // 진행률 계산 - debounce된 changes 수로 계산
   const checklist = data?.data;
+
+  // 반려 항목 요약 목록
+  const rejectedItems = useMemo(() => {
+    if (!checklist || reviews.length === 0) return [];
+    const rejected: { itemId: string; no: string; question: string; reason?: string }[] = [];
+    for (const cat of checklist.categories) {
+      for (const sec of cat.sections) {
+        for (const item of sec.items) {
+          const review = reviewMap.get(item.id);
+          if (review?.status === "rejected") {
+            rejected.push({ itemId: item.id, no: item.no, question: item.question, reason: review.reason });
+          }
+        }
+      }
+    }
+    return rejected;
+  }, [checklist, reviews, reviewMap]);
   const { totalItems, answeredItems, progress } = useMemo(() => {
     if (!checklist) return { totalItems: 0, answeredItems: 0, progress: 0 };
 
@@ -787,7 +805,7 @@ export default function ChecklistResponsePage() {
         )}
         {checklist.status === "rejected" && (
           <Alert severity="error" sx={{ mt: 2 }}>
-            반려되었습니다. 반려 사유를 확인하고 보완 후 재제출해주세요.
+            반려되었습니다. 아래 반려 항목을 확인하고 보완 후 재제출해주세요.
           </Alert>
         )}
         {canReopen && (
@@ -809,6 +827,52 @@ export default function ChecklistResponsePage() {
           </Alert>
         )}
       </Box>
+
+      {/* 반려 항목 요약 패널 */}
+      {rejectedItems.length > 0 && (
+        <Paper
+          variant="outlined"
+          sx={{
+            mb: 3,
+            borderColor: "error.main",
+            borderWidth: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              px: 2.5,
+              py: 1.5,
+              bgcolor: "error.main",
+              color: "error.contrastText",
+            }}
+          >
+            <ErrorOutlineIcon fontSize="small" />
+            <Typography variant="subtitle2" fontWeight={700}>
+              반려 항목 {rejectedItems.length}건
+            </Typography>
+          </Box>
+          <Stack spacing={0} divider={<Divider />}>
+            {rejectedItems.map((ri) => (
+              <Box key={ri.itemId} sx={{ px: 2.5, py: 1.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: ri.reason ? 0.5 : 0 }}>
+                  <Chip label={ri.no} size="small" variant="outlined" color="error" />
+                  <Typography variant="body2" fontWeight={600}>
+                    {ri.question}
+                  </Typography>
+                </Box>
+                {ri.reason && (
+                  <Typography variant="body2" color="error.main" sx={{ pl: 0.5 }}>
+                    {ri.reason}
+                  </Typography>
+                )}
+              </Box>
+            ))}
+          </Stack>
+        </Paper>
+      )}
 
       {/* 작성자 정보 */}
       {!isReadOnly && (
