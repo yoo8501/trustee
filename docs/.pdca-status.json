@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-22T15:06:37.113Z",
+  "lastUpdated": "2026-02-22T15:50:36.906Z",
   "activeFeatures": [
     "trustee-checklist-submission",
     "inspection-checklist",
@@ -109,9 +109,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-16T17:29:42.180Z",
-        "lastUpdated": "2026-02-22T14:53:00.973Z"
+        "lastUpdated": "2026-02-22T15:50:36.906Z"
       },
-      "lastFile": "/Users/seosangjun/trustee/frontend/web/src/hooks/index.ts"
+      "lastFile": "/Users/seosangjun/trustee/frontend/web/src/middleware.ts"
     },
     "(auth)": {
       "phase": "do",
@@ -240,7 +240,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-17T18:22:23.322Z",
-        "lastUpdated": "2026-02-22T14:52:56.721Z"
+        "lastUpdated": "2026-02-22T15:39:08.234Z"
       },
       "lastFile": "/Users/seosangjun/trustee/frontend/web/src/app/(dashboard)/inspections/templates/new/page.tsx"
     },
@@ -253,7 +253,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-17T18:22:45.425Z",
-        "lastUpdated": "2026-02-22T14:52:00.156Z"
+        "lastUpdated": "2026-02-22T15:38:42.768Z"
       },
       "lastFile": "/Users/seosangjun/trustee/frontend/web/src/app/(dashboard)/inspections/checklists/[id]/page.tsx"
     },
@@ -279,9 +279,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-17T18:32:15.913Z",
-        "lastUpdated": "2026-02-19T16:57:37.865Z"
+        "lastUpdated": "2026-02-22T15:32:40.380Z"
       },
-      "lastFile": "/Users/seosangjun/trustee/backend/services/inspection/seed-snapshots.ts"
+      "lastFile": "/Users/seosangjun/trustee/backend/services/inspection/src/services/trustee-checklist.service.ts"
     },
     "packages": {
       "phase": "do",
@@ -305,9 +305,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-18T12:31:09.833Z",
-        "lastUpdated": "2026-02-22T15:06:37.113Z"
+        "lastUpdated": "2026-02-22T15:32:41.812Z"
       },
-      "lastFile": "/Users/seosangjun/trustee/frontend/web/src/lib/api/client.ts"
+      "lastFile": "/Users/seosangjun/trustee/frontend/web/src/lib/api/trustee-checklists.ts"
     },
     "templates": {
       "phase": "do",
@@ -331,7 +331,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-18T12:33:17.399Z",
-        "lastUpdated": "2026-02-19T16:19:52.281Z"
+        "lastUpdated": "2026-02-22T15:33:23.920Z"
       },
       "lastFile": "/Users/seosangjun/trustee/frontend/web/src/app/(dashboard)/inspections/checklists/page.tsx"
     },
@@ -344,7 +344,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-18T12:34:31.250Z",
-        "lastUpdated": "2026-02-19T16:19:27.968Z"
+        "lastUpdated": "2026-02-22T15:32:58.158Z"
       },
       "lastFile": "/Users/seosangjun/trustee/frontend/web/src/app/(dashboard)/inspections/page.tsx"
     },
@@ -357,7 +357,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-18T16:08:43.709Z",
-        "lastUpdated": "2026-02-22T14:52:43.310Z"
+        "lastUpdated": "2026-02-22T15:48:53.257Z"
       },
       "lastFile": "/Users/seosangjun/trustee/frontend/web/src/app/checklist/[token]/page.tsx"
     }
@@ -440,7 +440,7 @@
   "session": {
     "startedAt": "2026-02-15T17:06:35.484Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-22T15:06:37.113Z"
+    "lastActivity": "2026-02-22T15:50:36.906Z"
   },
   "history": [
     {
@@ -3035,6 +3035,180 @@
     {
       "timestamp": "2026-02-22T15:06:37.113Z",
       "feature": "api",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:06.511Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:08.797Z",
+      "feature": "checklists",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:12.961Z",
+      "feature": "checklists",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:14.069Z",
+      "feature": "checklists",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:37.042Z",
+      "feature": "inspection",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:37.573Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:38.477Z",
+      "feature": "inspection",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:40.380Z",
+      "feature": "inspection",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:41.702Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:41.812Z",
+      "feature": "api",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:43.326Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:32:58.158Z",
+      "feature": "inspections",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:33:23.920Z",
+      "feature": "checklists",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:35:24.517Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:35:50.852Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:37:57.943Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:38:42.768Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:39:08.234Z",
+      "feature": "new",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:39:31.640Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:39:35.029Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:39:46.187Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:39:55.806Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:40:13.457Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:40:21.452Z",
+      "feature": "web",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:48:10.720Z",
+      "feature": "[token]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:48:21.276Z",
+      "feature": "[token]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:48:34.072Z",
+      "feature": "[token]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:48:53.257Z",
+      "feature": "[token]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T15:50:36.906Z",
+      "feature": "web",
       "phase": "do",
       "action": "updated"
     }
