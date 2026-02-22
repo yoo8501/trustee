@@ -12,7 +12,6 @@ import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Chip from "@mui/material/Chip";
 import Alert from "@mui/material/Alert";
-import Snackbar from "@mui/material/Snackbar";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
@@ -60,6 +59,7 @@ import {
   useChecklistReviews,
 } from "@/hooks";
 import { checklistResponseApi } from "@/lib/api";
+import { useToast } from "@/hooks/useToast";
 
 const statusLabelMap: Record<string, string> = {
   draft: "초안",
@@ -505,7 +505,7 @@ export default function ChecklistDetailPage() {
   const { mutate: regenerateToken, isPending: isRegenerating } = useRegenerateToken();
   const { mutate: rejectChecklist, isPending: isRejecting } = useRejectChecklist();
   const { mutate: reviewChecklist, isPending: isReviewingMut } = useReviewChecklist();
-  const [snackbar, setSnackbar] = useState<string | null>(null);
+  const toast = useToast();
   const [copied, setCopied] = useState(false);
   const [confirmReviewOpen, setConfirmReviewOpen] = useState(false);
   const [confirmRegenerateOpen, setConfirmRegenerateOpen] = useState(false);
@@ -566,10 +566,9 @@ export default function ChecklistDetailPage() {
   const handleReviewComplete = () => {
     reviewChecklist(id, {
       onSuccess: () => {
-        setSnackbar("검토가 완료되었습니다.");
+        toast.success("검토가 완료되었습니다.");
         setConfirmReviewOpen(false);
       },
-      onError: () => setSnackbar("검토 완료 처리에 실패했습니다."),
     });
   };
 
@@ -582,10 +581,9 @@ export default function ChecklistDetailPage() {
       { id, data: { items, newDeadline } },
       {
         onSuccess: () => {
-          setSnackbar("반려 처리가 완료되었습니다.");
+          toast.success("반려 처리가 완료되었습니다.");
           setRejectDialogOpen(false);
         },
-        onError: () => setSnackbar("반려 처리에 실패했습니다."),
       }
     );
   };
@@ -596,10 +594,9 @@ export default function ChecklistDetailPage() {
       { id, data: { deadline: new Date(newDeadline + "T23:59:59").toISOString() } },
       {
         onSuccess: () => {
-          setSnackbar("작성 기한이 변경되었습니다.");
+          toast.success("작성 기한이 변경되었습니다.");
           setDeadlineEditOpen(false);
         },
-        onError: () => setSnackbar("기한 변경에 실패했습니다."),
       }
     );
   };
@@ -607,10 +604,9 @@ export default function ChecklistDetailPage() {
   const handleRegenerateToken = () => {
     regenerateToken(id, {
       onSuccess: () => {
-        setSnackbar("토큰이 재발급되었습니다.");
+        toast.success("토큰이 재발급되었습니다.");
         setConfirmRegenerateOpen(false);
       },
-      onError: () => setSnackbar("토큰 재발급에 실패했습니다."),
     });
   };
 
@@ -1043,7 +1039,7 @@ export default function ChecklistDetailPage() {
         categories={checklist.categories}
         isRejecting={isRejecting}
         onSubmit={handleRejectSubmit}
-        onError={(msg) => setSnackbar(msg)}
+        onError={(msg) => toast.warning(msg)}
       />
 
       {/* 토큰 재발급 확인 다이얼로그 */}
@@ -1102,16 +1098,6 @@ export default function ChecklistDetailPage() {
         />
       </Dialog>
 
-      <Snackbar
-        open={!!snackbar}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert onClose={() => setSnackbar(null)} severity="info" sx={{ width: "100%" }}>
-          {snackbar}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

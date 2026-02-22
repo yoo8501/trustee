@@ -17,7 +17,6 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
-import Snackbar from "@mui/material/Snackbar";
 import LinearProgress from "@mui/material/LinearProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -51,6 +50,7 @@ import {
   useChecklistResponseReviews,
 } from "@/hooks";
 import { checklistResponseApi } from "@/lib/api";
+import { useToast } from "@/hooks/useToast";
 
 interface ItemChange {
   applicable?: boolean;
@@ -577,7 +577,7 @@ export default function ChecklistResponsePage() {
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
-  const [snackbar, setSnackbar] = useState<string | null>(null);
+  const toast = useToast();
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
 
@@ -626,7 +626,7 @@ export default function ChecklistResponsePage() {
       changes
     ).map(([id, change]) => ({ id, ...change }));
     if (items.length === 0) {
-      setSnackbar("변경된 항목이 없습니다.");
+      toast.info("변경된 항목이 없습니다.");
       return;
     }
     batchSave(
@@ -634,9 +634,8 @@ export default function ChecklistResponsePage() {
       {
         onSuccess: () => {
           setChanges({});
-          setSnackbar("저장되었습니다.");
+          toast.success("저장되었습니다.");
         },
-        onError: () => setSnackbar("저장에 실패했습니다."),
       }
     );
   };
@@ -652,8 +651,7 @@ export default function ChecklistResponsePage() {
 
   const handleReopen = () => {
     reopenChecklist(undefined, {
-      onSuccess: () => setSnackbar("재수정 모드로 전환되었습니다."),
-      onError: () => setSnackbar("재수정 전환에 실패했습니다."),
+      onSuccess: () => toast.success("재수정 모드로 전환되었습니다."),
     });
   };
 
@@ -672,8 +670,7 @@ export default function ChecklistResponsePage() {
           contactPhone: contactPhone.trim() || undefined,
         },
         {
-          onSuccess: () => setSnackbar("제출이 완료되었습니다."),
-          onError: () => setSnackbar("제출에 실패했습니다."),
+          onSuccess: () => toast.success("제출이 완료되었습니다."),
         }
       );
     };
@@ -953,21 +950,6 @@ export default function ChecklistResponsePage() {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
-      <Snackbar
-        open={!!snackbar}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSnackbar(null)}
-          severity="info"
-          sx={{ width: "100%" }}
-        >
-          {snackbar}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

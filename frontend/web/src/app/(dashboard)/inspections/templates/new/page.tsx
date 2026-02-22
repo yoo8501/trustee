@@ -34,9 +34,7 @@ export default function NewTemplatePage() {
         onSuccess: () => {
           router.push("/inspections/templates");
         },
-        onError: (err) => {
-          setError(err instanceof Error ? err.message : "Import에 실패했습니다.");
-        },
+        // onError는 QueryProvider 전역 핸들러가 자동 처리
       });
     } catch {
       setError("유효한 JSON 형식이 아닙니다.");

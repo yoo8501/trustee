@@ -5,6 +5,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { theme } from "@trustee/ui";
 import { QueryProvider } from "@/components/QueryProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { ToastProvider } from "@/components/ToastProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,9 +32,11 @@ export default function RootLayout({
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <QueryProvider>
-              <AuthProvider>{children}</AuthProvider>
-            </QueryProvider>
+            <ToastProvider>
+              <QueryProvider>
+                <AuthProvider>{children}</AuthProvider>
+              </QueryProvider>
+            </ToastProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>
