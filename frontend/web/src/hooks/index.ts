@@ -9,6 +9,8 @@ export {
   useDeleteTrustee,
 } from "./useTrustees";
 
+export { useTrusteeMap } from "./useTrusteeMap";
+
 export {
   useContractsByTrustee,
   useContract,

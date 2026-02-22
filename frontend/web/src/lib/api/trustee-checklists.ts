@@ -27,6 +27,7 @@ interface ChecklistListParams {
   limit?: number;
   trusteeId?: string;
   status?: string;
+  search?: string;
 }
 
 export const trusteeChecklistsApi = {
