@@ -58,7 +58,11 @@ class ApiClient {
       });
 
       if (response.status === 401) {
-        if (typeof window !== "undefined") {
+        // 인증 관련 API 또는 인증 페이지에서는 리다이렉트 하지 않음
+        const isAuthApi = path.startsWith("/api/auth/");
+        const authPages = ["/login", "/signup", "/forgot-password", "/reset-password"];
+        const isAuthPage = typeof window !== "undefined" && authPages.some((p) => window.location.pathname.startsWith(p));
+        if (typeof window !== "undefined" && !isAuthApi && !isAuthPage) {
           window.location.href = "/login?expired=true";
         }
         throw new ApiError("인증이 만료되었습니다. 다시 로그인해주세요.", 401, "UNAUTHORIZED");
