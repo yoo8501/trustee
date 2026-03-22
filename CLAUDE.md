@@ -18,9 +18,13 @@
 - [ ] 콘솔 에러 없음
 - [ ] 코드 리뷰 완료
 
+## 테스트 계정 정보
+"email":"yooy8501@gamil.com","password":"Test1234!"
+
 ## 참조 문서
 @docs/architecture/ARCHITECTURE.md
 @docs/guides/CONVENTIONS.md
 
 ##주의
 질문과 답변은 한글로 해라
+

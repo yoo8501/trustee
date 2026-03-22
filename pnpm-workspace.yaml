@@ -1,5 +1,0 @@
-packages:
-  - 'frontend/web'
-  - 'frontend/packages/*'
-  - 'backend/services/*'
-  - 'backend/packages/*'
