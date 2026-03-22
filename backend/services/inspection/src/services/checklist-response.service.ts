@@ -39,6 +39,12 @@ export class ChecklistResponseService {
     const checklist = await this.getByToken(token);
     this.validateEditable(checklist);
 
+    // 항목이 이 체크리스트에 속하는지 검증
+    const item = await this.repository.findItemByIdAndChecklistId(itemId, checklist.id);
+    if (!item) {
+      throw new NotFoundError("ChecklistItem", itemId);
+    }
+
     // 첫 저장 또는 반려 후 재작성 시 상태를 in_progress로 자동 변경
     if (checklist.status === "sent" || checklist.status === "rejected") {
       await this.repository.update(checklist.id, { status: "in_progress" });
@@ -50,6 +56,14 @@ export class ChecklistResponseService {
   async batchUpdateItems(token: string, dto: BatchUpdateChecklistItemsInput) {
     const checklist = await this.getByToken(token);
     this.validateEditable(checklist);
+
+    // 모든 항목이 이 체크리스트에 속하는지 검증
+    for (const entry of dto.items) {
+      const item = await this.repository.findItemByIdAndChecklistId(entry.id, checklist.id);
+      if (!item) {
+        throw new NotFoundError("ChecklistItem", entry.id);
+      }
+    }
 
     if (checklist.status === "sent" || checklist.status === "rejected") {
       await this.repository.update(checklist.id, { status: "in_progress" });
@@ -134,7 +148,7 @@ export class ChecklistResponseService {
     this.validateEditable(checklist);
 
     // 항목이 이 체크리스트에 속하는지 확인
-    const item = await this.repository.findItemById(itemId);
+    const item = await this.repository.findItemByIdAndChecklistId(itemId, checklist.id);
     if (!item) {
       throw new NotFoundError("ChecklistItem", itemId);
     }
@@ -172,7 +186,8 @@ export class ChecklistResponseService {
     const checklist = await this.getByToken(token);
     this.validateEditable(checklist);
 
-    const file = await this.repository.findEvidenceFileById(fileId);
+    // 파일이 이 체크리스트에 속하는지 검증
+    const file = await this.repository.findEvidenceFileByIdAndChecklistId(fileId, checklist.id);
     if (!file) {
       throw new NotFoundError("EvidenceFile", fileId);
     }

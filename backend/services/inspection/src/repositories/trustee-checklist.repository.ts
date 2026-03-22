@@ -191,6 +191,25 @@ export class TrusteeChecklistRepository {
     });
   }
 
+  async findItemByIdAndChecklistId(itemId: string, checklistId: string) {
+    return prisma.trusteeChecklistItem.findFirst({
+      where: {
+        id: itemId,
+        section: { category: { checklistId } },
+      },
+      include: { evidenceFiles: true },
+    });
+  }
+
+  async findEvidenceFileByIdAndChecklistId(fileId: string, checklistId: string) {
+    return prisma.evidenceFile.findFirst({
+      where: {
+        id: fileId,
+        item: { section: { category: { checklistId } } },
+      },
+    });
+  }
+
   async createEvidenceFile(data: {
     itemId: string;
     fileName: string;

@@ -20,14 +20,14 @@ export function createChecklistResponseRoutes(
   router.get("/:token/reviews", controller.getReviews);
   router.get("/:token", controller.getByToken);
   router.patch(
-    "/:token/items/:itemId",
-    validate(updateTrusteeChecklistItemSchema),
-    controller.updateItem
-  );
-  router.patch(
     "/:token/items/batch",
     validate(batchUpdateChecklistItemsSchema),
     controller.batchUpdateItems
+  );
+  router.patch(
+    "/:token/items/:itemId",
+    validate(updateTrusteeChecklistItemSchema),
+    controller.updateItem
   );
 
   // 파일 업로드/삭제

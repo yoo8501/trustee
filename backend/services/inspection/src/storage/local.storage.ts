@@ -12,6 +12,14 @@ export class LocalStorageProvider implements StorageProvider {
     this.basePath = basePath || path.resolve(process.cwd(), "uploads", "evidence");
   }
 
+  private resolveSafePath(storagePath: string): string {
+    const fullPath = path.resolve(this.basePath, storagePath);
+    if (!fullPath.startsWith(this.basePath + path.sep) && fullPath !== this.basePath) {
+      throw new Error("잘못된 파일 경로입니다.");
+    }
+    return fullPath;
+  }
+
   async upload(file: UploadedFile): Promise<StoredFileInfo> {
     await fs.mkdir(this.basePath, { recursive: true });
 
@@ -31,7 +39,7 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async delete(storagePath: string): Promise<void> {
-    const fullPath = path.join(this.basePath, storagePath);
+    const fullPath = this.resolveSafePath(storagePath);
     try {
       await fs.unlink(fullPath);
     } catch (err: unknown) {
@@ -44,7 +52,7 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async getStream(storagePath: string): Promise<NodeJS.ReadableStream> {
-    const fullPath = path.join(this.basePath, storagePath);
+    const fullPath = this.resolveSafePath(storagePath);
     await fs.access(fullPath);
     return createReadStream(fullPath);
   }

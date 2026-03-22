@@ -13,6 +13,7 @@ const PUBLIC_PATHS = [
   "/api/auth/reset-password",
   "/api/auth/social/google",
   "/api/auth/social/github",
+  "/api/checklist-response",
 ];
 
 interface TokenPayload {
@@ -21,7 +22,7 @@ interface TokenPayload {
   role: string;
 }
 
-export function authMiddleware(req: Request, _res: Response, next: NextFunction) {
+export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   // 공개 경로는 인증 건너뜀
   if (PUBLIC_PATHS.some((path) => req.path === path || req.path.startsWith(path + "/"))) {
     return next();
@@ -33,16 +34,14 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
     req.headers.authorization?.replace("Bearer ", "");
 
   if (!token) {
-    // 토큰 없으면 통과 (me 엔드포인트 등에서 개별 처리)
-    return next();
+    return res.status(401).json({ error: { code: "UNAUTHORIZED", message: "인증이 필요합니다." } });
   }
 
   try {
     const payload = jwt.verify(token, config.jwtSecret) as TokenPayload;
     (req as Request & { userId?: string }).userId = payload.userId;
+    next();
   } catch {
-    // 토큰 만료/유효하지 않음 - 통과시키되 userId 미설정
+    return res.status(401).json({ error: { code: "UNAUTHORIZED", message: "유효하지 않은 인증 토큰입니다." } });
   }
-
-  next();
 }
