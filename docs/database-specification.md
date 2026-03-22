@@ -356,30 +356,249 @@
 
 ---
 
-## 4. ER 다이어그램 (텍스트)
+## 4. ER 다이어그램
+
+> 이미지: `docs/erd.png`
+
+```mermaid
+erDiagram
+    %% ━━━━━ Gateway DB (auth) ━━━━━
+    users {
+        string id PK
+        string email UK "로그인 ID"
+        string password_hash
+        string name
+        enum role "admin | user"
+        datetime created_at
+        datetime updated_at
+    }
+
+    %% ━━━━━ Trustee Service DB ━━━━━
+    trustees {
+        string id PK
+        string company_name
+        string business_number UK
+        string representative
+        text delegated_tasks
+        enum status "active | inactive | pending"
+        datetime created_at
+        datetime updated_at
+    }
+
+    trustee_contacts {
+        string id PK
+        string trustee_id FK
+        string name
+        string phone
+        string email
+        string department
+        string position
+        boolean is_primary
+        datetime created_at
+        datetime updated_at
+    }
+
+    contracts {
+        string id PK
+        string trustee_id FK
+        datetime start_date
+        datetime end_date
+        string file_url
+        datetime created_at
+        datetime updated_at
+    }
+
+    trustees ||--o{ trustee_contacts : "담당자"
+    trustees ||--o{ contracts : "계약"
+
+    %% ━━━━━ Inspection Service DB ━━━━━
+
+    %% 레거시 점검
+    inspections {
+        string id PK
+        string trustee_id "수탁사 (외부 참조)"
+        datetime inspection_date
+        int score
+        enum status "scheduled | in_progress | completed | cancelled"
+        text findings
+        text improvements
+        datetime created_at
+        datetime updated_at
+    }
+
+    inspection_items {
+        string id PK
+        string inspection_id FK
+        string category
+        text question
+        enum result "pass | fail | partial | not_applicable"
+        text note
+        datetime created_at
+        datetime updated_at
+    }
+
+    inspections ||--o{ inspection_items : "점검항목"
+
+    %% Root 템플릿
+    checklist_templates {
+        string id PK
+        string title
+        string version "default 1.0"
+        text description
+        datetime created_at
+        datetime updated_at
+    }
+
+    checklist_categories {
+        string id PK
+        string template_id FK
+        int no
+        string name
+        int sort_order
+        int weight "가중치 %"
+    }
+
+    checklist_sections {
+        string id PK
+        string category_id FK
+        string no
+        string name
+        int sort_order
+    }
+
+    checklist_items {
+        string id PK
+        string section_id FK
+        string no
+        text question
+        text hint
+        int sort_order
+        boolean is_critical
+    }
+
+    checklist_templates ||--o{ checklist_categories : "카테고리"
+    checklist_categories ||--o{ checklist_sections : "섹션"
+    checklist_sections ||--o{ checklist_items : "항목"
+
+    %% 수탁사별 체크리스트 (스냅샷)
+    trustee_checklists {
+        string id PK
+        string trustee_id "수탁사 (외부 참조)"
+        string template_id
+        string template_version
+        string title
+        text inspection_scope
+        enum status "draft | sent | in_progress | submitted | reviewed | rejected"
+        datetime submitted_at
+        string access_token UK "수탁사 접근 토큰"
+        datetime access_token_expires_at
+        int submission_count
+        string contact_name
+        string contact_email
+        string contact_phone
+        float total_score
+        string grade "S/A/B/C/D"
+        json score_detail
+        datetime scored_at
+        int total_item_count "진행률 캐시"
+        int answered_count "진행률 캐시"
+        int review_round "검토 차수"
+        datetime created_at
+        datetime updated_at
+    }
+
+    trustee_checklist_categories {
+        string id PK
+        string checklist_id FK
+        int no
+        string name
+        int sort_order
+        int weight "가중치 %"
+    }
+
+    trustee_checklist_sections {
+        string id PK
+        string category_id FK
+        string no
+        string name
+        int sort_order
+    }
+
+    trustee_checklist_items {
+        string id PK
+        string section_id FK
+        string no
+        text question
+        text hint
+        int sort_order
+        boolean applicable
+        enum answer "yes | no | not_applicable"
+        text current_status
+        text remarks
+        boolean is_critical
+    }
+
+    evidence_files {
+        string id PK
+        string item_id FK
+        string file_name
+        int file_size
+        string mime_type
+        string storage_path
+        datetime created_at
+    }
+
+    item_reviews {
+        string id PK
+        string checklist_id FK
+        string item_id
+        string status "approved | rejected"
+        text reason
+        datetime reviewed_at
+        int review_round
+    }
+
+    checklist_snapshots {
+        string id PK
+        string checklist_id FK
+        int round
+        json data
+        datetime submitted_at
+        datetime created_at
+    }
+
+    trustee_checklists ||--o{ trustee_checklist_categories : "카테고리"
+    trustee_checklist_categories ||--o{ trustee_checklist_sections : "섹션"
+    trustee_checklist_sections ||--o{ trustee_checklist_items : "항목"
+    trustee_checklist_items ||--o{ evidence_files : "증빙파일"
+    trustee_checklists ||--o{ item_reviews : "검토"
+    trustee_checklists ||--o{ checklist_snapshots : "스냅샷"
+```
+
+### 테이블 관계 요약
 
 ```
-[Gateway DB]
-  users
+[Gateway DB - auth]
+  users (1개)
 
 [Trustee Service DB]
-  trustees ─┬─ trustee_contacts
-             └─ contracts
+  trustees ──┬── trustee_contacts    (1:N, CASCADE)
+             └── contracts            (1:N, CASCADE)
 
 [Inspection Service DB]
-  inspections ── inspection_items
+  inspections ── inspection_items     (1:N, CASCADE)
 
-  checklist_templates
-    └─ checklist_categories
-        └─ checklist_sections
-            └─ checklist_items
+  checklist_templates                          ← Root 템플릿
+    └── checklist_categories                   (1:N, CASCADE)
+        └── checklist_sections                 (1:N, CASCADE)
+            └── checklist_items                (1:N, CASCADE)
 
-  trustee_checklists ─┬─ trustee_checklist_categories
-                      │    └─ trustee_checklist_sections
-                      │        └─ trustee_checklist_items
-                      │            └─ evidence_files
-                      ├─ item_reviews
-                      └─ checklist_snapshots
+  trustee_checklists ──┬── trustee_checklist_categories   (1:N, CASCADE)
+    (수탁사 스냅샷)     │    └── trustee_checklist_sections (1:N, CASCADE)
+                       │        └── trustee_checklist_items (1:N, CASCADE)
+                       │            └── evidence_files      (1:N, CASCADE)
+                       ├── item_reviews                     (1:N, CASCADE)
+                       └── checklist_snapshots              (1:N, CASCADE)
 ```
 
 ---
