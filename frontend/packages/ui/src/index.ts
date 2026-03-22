@@ -30,6 +30,8 @@ export { StatCard, type StatCardProps } from "./components/StatCard";
 export { IconButton, type IconButtonProps } from "./components/IconButton";
 export { Kbd, type KbdProps } from "./components/Kbd";
 export { GradeBadge, type GradeBadgeProps, type UIGrade } from "./components/GradeBadge";
+export { TableSkeleton, type TableSkeletonProps } from "./components/TableSkeleton";
+export { Breadcrumb, type BreadcrumbItem, type BreadcrumbProps } from "./components/Breadcrumb";
 
 // Re-export commonly used MUI components
 export {
