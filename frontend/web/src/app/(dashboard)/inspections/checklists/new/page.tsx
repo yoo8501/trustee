@@ -17,6 +17,7 @@ import {
   FormTextField,
   CircularProgress,
   Dialog,
+  Breadcrumb,
 } from "@trustee/ui";
 import { spacing } from "@trustee/ui";
 import { useChecklistTemplates, useTrustees, useCreateTrusteeChecklist } from "@/hooks";
@@ -100,6 +101,15 @@ export default function NewChecklistPage() {
 
   return (
     <Box sx={{ p: `${spacing.pageInset}px` }}>
+      <Breadcrumb
+        items={[
+          { label: "대시보드", href: "/" },
+          { label: "점검 관리", href: "/inspections" },
+          { label: "수탁사 체크리스트", href: "/inspections/checklists" },
+          { label: "체크리스트 생성" },
+        ]}
+        onNavigate={(href) => router.push(href)}
+      />
       <PageHeader
         title="체크리스트 생성"
         description="템플릿을 선택하여 수탁사별 보안점검 체크리스트를 생성합니다."

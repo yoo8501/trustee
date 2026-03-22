@@ -38,7 +38,7 @@ class ApiClient {
   }
 
   private async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const { body, params, timeout = 30000, ...init } = options;
+    const { body, params, timeout = 10000, ...init } = options;
 
     const url = this.buildUrl(path, params);
 

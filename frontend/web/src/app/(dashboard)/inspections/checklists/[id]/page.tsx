@@ -12,6 +12,7 @@ import {
   Button,
   Box,
   CircularProgress,
+  Breadcrumb,
 } from "@trustee/ui";
 import { spacing } from "@trustee/ui";
 import type { RejectChecklistInput } from "@trustee/types";
@@ -177,6 +178,15 @@ export default function ChecklistDetailPage() {
 
   return (
     <Box sx={{ p: `${spacing.pageInset}px` }}>
+      <Breadcrumb
+        items={[
+          { label: "대시보드", href: "/" },
+          { label: "점검 관리", href: "/inspections" },
+          { label: "수탁사 체크리스트", href: "/inspections/checklists" },
+          { label: checklist.title },
+        ]}
+        onNavigate={(href) => router.push(href)}
+      />
       <PageHeader
         title={checklist.title}
         description={checklist.inspectionScope || ""}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CreateChecklistTemplateInput, UpdateChecklistTemplateInput } from "@trustee/types";
 
 import { checklistTemplatesApi } from "@/lib/api";
@@ -14,6 +14,7 @@ export function useChecklistTemplates(params?: {
   return useQuery({
     queryKey: [...TEMPLATES_KEY, params],
     queryFn: () => checklistTemplatesApi.list(params),
+    placeholderData: keepPreviousData,
   });
 }
 

@@ -11,6 +11,7 @@ import {
   Button,
   Box,
   FormTextField,
+  Breadcrumb,
 } from "@trustee/ui";
 import { spacing } from "@trustee/ui";
 import { useImportChecklistTemplate } from "@/hooks";
@@ -74,6 +75,15 @@ export default function NewTemplatePage() {
 
   return (
     <Box sx={{ p: `${spacing.pageInset}px` }}>
+      <Breadcrumb
+        items={[
+          { label: "대시보드", href: "/" },
+          { label: "점검 관리", href: "/inspections" },
+          { label: "체크리스트 템플릿", href: "/inspections/templates" },
+          { label: "템플릿 생성" },
+        ]}
+        onNavigate={(href) => router.push(href)}
+      />
       <PageHeader
         title="템플릿 생성"
         description="JSON 파일을 업로드하거나 붙여넣어 체크리스트 템플릿을 생성합니다."

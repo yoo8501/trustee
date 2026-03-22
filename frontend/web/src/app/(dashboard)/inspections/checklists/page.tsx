@@ -8,13 +8,16 @@ import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import {
   PageHeader,
   Button,
   DataTable,
   FormSelect,
+  EmptyState,
+  TableSkeleton,
+  Breadcrumb,
   Box,
-  CircularProgress,
   GradeBadge,
   type Column,
 } from "@trustee/ui";
@@ -57,7 +60,7 @@ export default function ChecklistsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading } = useTrusteeChecklists({
+  const { data, isLoading, isError, refetch } = useTrusteeChecklists({
     page: page + 1,
     limit: rowsPerPage,
     status: statusFilter === "all" ? undefined : statusFilter,
@@ -144,16 +147,16 @@ export default function ChecklistsPage() {
     },
   ];
 
-  if (isLoading) {
-    return (
-      <Box sx={{ p: `${spacing.pageInset}px`, display: "flex", justifyContent: "center", pt: 10 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ p: `${spacing.pageInset}px` }}>
+      <Breadcrumb
+        items={[
+          { label: "대시보드", href: "/" },
+          { label: "점검 관리", href: "/inspections" },
+          { label: "수탁사 체크리스트" },
+        ]}
+        onNavigate={(href) => router.push(href)}
+      />
       <PageHeader
         title="수탁사 체크리스트"
         description="수탁사에게 전달된 보안점검 체크리스트를 관리합니다."
@@ -195,17 +198,45 @@ export default function ChecklistsPage() {
         />
       </Box>
 
-      <DataTable
-        columns={columns}
-        rows={data?.data ?? []}
-        getRowKey={(row) => row.id}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        totalRows={data?.total ?? 0}
-        onPageChange={setPage}
-        onRowsPerPageChange={setRowsPerPage}
-        onRowClick={(row) => router.push(`/inspections/checklists/${row.id}`)}
-      />
+      {isLoading ? (
+        <TableSkeleton rows={5} columns={columns.length} />
+      ) : isError ? (
+        <Box sx={{ textAlign: "center", py: 6 }}>
+          <Typography color="error" gutterBottom>
+            데이터를 불러오는데 실패했습니다.
+          </Typography>
+          <Button variant="outlined" onClick={() => refetch()}>
+            다시 시도
+          </Button>
+        </Box>
+      ) : data?.data?.length === 0 ? (
+        <EmptyState
+          icon={<AssignmentIcon />}
+          title="생성된 체크리스트가 없습니다"
+          description="수탁사에게 보안점검 체크리스트를 생성하여 전달하세요."
+          action={
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => router.push("/inspections/checklists/new")}
+            >
+              체크리스트 생성
+            </Button>
+          }
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={data?.data ?? []}
+          getRowKey={(row) => row.id}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          totalRows={data?.total ?? 0}
+          onPageChange={setPage}
+          onRowsPerPageChange={setRowsPerPage}
+          onRowClick={(row) => router.push(`/inspections/checklists/${row.id}`)}
+        />
+      )}
     </Box>
   );
 }

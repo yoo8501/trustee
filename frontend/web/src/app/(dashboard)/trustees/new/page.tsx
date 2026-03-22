@@ -15,6 +15,7 @@ import {
   Form,
   FormTextField,
   FormSelect,
+  Breadcrumb,
   Box,
   Paper,
   Typography,
@@ -115,6 +116,14 @@ export default function NewTrusteePage() {
 
   return (
     <Box sx={{ p: `${spacing.pageInset}px` }}>
+      <Breadcrumb
+        items={[
+          { label: "대시보드", href: "/" },
+          { label: "수탁사 관리", href: "/trustees" },
+          { label: "수탁사 등록" },
+        ]}
+        onNavigate={(href) => router.push(href)}
+      />
       <PageHeader title="수탁사 등록" />
 
       <Paper

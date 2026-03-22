@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CreateTrusteeInput, UpdateTrusteeInput } from "@trustee/types";
 
 import { trusteesApi } from "@/lib/api";
@@ -16,6 +16,7 @@ export function useTrustees(params?: {
   return useQuery({
     queryKey: [...TRUSTEES_KEY, params],
     queryFn: () => trusteesApi.list(params),
+    placeholderData: keepPreviousData,
   });
 }
 

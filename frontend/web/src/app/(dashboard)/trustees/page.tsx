@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AddIcon from "@mui/icons-material/Add";
+import BusinessIcon from "@mui/icons-material/Business";
+import Typography from "@mui/material/Typography";
 import {
   PageHeader,
   Button,
@@ -10,8 +12,10 @@ import {
   StatusBadge,
   SearchInput,
   FormSelect,
+  EmptyState,
+  TableSkeleton,
+  Breadcrumb,
   Box,
-  CircularProgress,
   type Column,
 } from "@trustee/ui";
 import { spacing } from "@trustee/ui";
@@ -60,30 +64,22 @@ export default function TrusteesPage() {
     },
   ];
 
-  const { data, isLoading } = useTrustees({
+  const { data, isLoading, isError, refetch } = useTrustees({
     page: page + 1,
     limit: rowsPerPage,
     search: search || undefined,
     status: statusFilter || undefined,
   });
 
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          p: `${spacing.pageInset}px`,
-          display: "flex",
-          justifyContent: "center",
-          pt: 10,
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ p: `${spacing.pageInset}px` }}>
+      <Breadcrumb
+        items={[
+          { label: "대시보드", href: "/" },
+          { label: "수탁사 관리" },
+        ]}
+        onNavigate={(href) => router.push(href)}
+      />
       <PageHeader
         title="수탁사 관리"
         description="개인정보 처리 업무를 위탁받은 수탁사를 관리합니다."
@@ -116,17 +112,45 @@ export default function TrusteesPage() {
         />
       </Box>
 
-      <DataTable
-        columns={columns}
-        rows={data?.data ?? []}
-        getRowKey={(row) => row.id}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        totalRows={data?.total ?? 0}
-        onPageChange={setPage}
-        onRowsPerPageChange={setRowsPerPage}
-        onRowClick={(row) => router.push(`/trustees/${row.id}`)}
-      />
+      {isLoading ? (
+        <TableSkeleton rows={5} columns={columns.length} />
+      ) : isError ? (
+        <Box sx={{ textAlign: "center", py: 6 }}>
+          <Typography color="error" gutterBottom>
+            데이터를 불러오는데 실패했습니다.
+          </Typography>
+          <Button variant="outlined" onClick={() => refetch()}>
+            다시 시도
+          </Button>
+        </Box>
+      ) : data?.data?.length === 0 ? (
+        <EmptyState
+          icon={<BusinessIcon />}
+          title="등록된 수탁사가 없습니다"
+          description="수탁사를 등록하여 관리를 시작하세요."
+          action={
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => router.push("/trustees/new")}
+            >
+              수탁사 등록
+            </Button>
+          }
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={data?.data ?? []}
+          getRowKey={(row) => row.id}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          totalRows={data?.total ?? 0}
+          onPageChange={setPage}
+          onRowsPerPageChange={setRowsPerPage}
+          onRowClick={(row) => router.push(`/trustees/${row.id}`)}
+        />
+      )}
     </Box>
   );
 }

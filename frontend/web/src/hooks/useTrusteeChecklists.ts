@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   CreateTrusteeChecklistInput,
   UpdateTrusteeChecklistInput,
@@ -23,6 +23,7 @@ export function useTrusteeChecklists(params?: {
   return useQuery({
     queryKey: [...CHECKLISTS_KEY, params],
     queryFn: () => trusteeChecklistsApi.list(params),
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -166,6 +167,7 @@ export function useChecklistStats() {
   return useQuery({
     queryKey: [...CHECKLISTS_KEY, "stats"],
     queryFn: () => trusteeChecklistsApi.stats(),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -173,6 +175,7 @@ export function useRecentSubmitted(limit?: number) {
   return useQuery({
     queryKey: [...CHECKLISTS_KEY, "recent", limit],
     queryFn: () => trusteeChecklistsApi.recentSubmitted(limit),
+    staleTime: 2 * 60 * 1000,
   });
 }
 

@@ -17,6 +17,7 @@ import {
   FormTextField,
   FormSelect,
   Dialog,
+  Breadcrumb,
   Box,
   Paper,
   CircularProgress,
@@ -186,6 +187,14 @@ export default function TrusteeDetailPage({ params }: PageProps) {
 
   return (
     <Box sx={{ p: `${spacing.pageInset}px` }}>
+      <Breadcrumb
+        items={[
+          { label: "대시보드", href: "/" },
+          { label: "수탁사 관리", href: "/trustees" },
+          { label: data?.data?.companyName || "수탁사 상세" },
+        ]}
+        onNavigate={(href) => router.push(href)}
+      />
       <PageHeader
         title="수탁사 상세"
         actions={

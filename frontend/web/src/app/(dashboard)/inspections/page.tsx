@@ -13,7 +13,7 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RateReviewIcon from "@mui/icons-material/RateReview";
 import ScoreIcon from "@mui/icons-material/Score";
-import { PageHeader, Box, Button, StatCard, DataTable, GradeBadge, type Column } from "@trustee/ui";
+import { PageHeader, Box, Button, StatCard, DataTable, GradeBadge, Breadcrumb, type Column } from "@trustee/ui";
 import { spacing } from "@trustee/ui";
 import { useChecklistStats, useRecentSubmitted, useTrusteeMap } from "@/hooks";
 import { InspectionStatusChip, type InspectionStatus } from "@/components/InspectionStatusChip";
@@ -82,6 +82,13 @@ export default function InspectionsPage() {
 
   return (
     <Box sx={{ p: `${spacing.pageInset}px` }}>
+      <Breadcrumb
+        items={[
+          { label: "대시보드", href: "/" },
+          { label: "점검 관리" },
+        ]}
+        onNavigate={(href) => router.push(href)}
+      />
       <PageHeader
         title="점검 관리"
         description="보안점검 체크리스트 템플릿과 수탁사별 체크리스트를 관리합니다."

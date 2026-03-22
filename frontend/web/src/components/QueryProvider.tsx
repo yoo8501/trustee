@@ -39,9 +39,10 @@ function makeQueryClient(showError: (msg: string) => void) {
           if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
             return false;
           }
-          // 네트워크/타임아웃 에러만 3회 재시도
-          return failureCount < 3;
+          // 네트워크/타임아웃 에러는 1회만 재시도
+          return failureCount < 1;
         },
+        retryDelay: 1000,
       },
       mutations: {
         onError: (error) => {

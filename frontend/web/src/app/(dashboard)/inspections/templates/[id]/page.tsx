@@ -21,6 +21,7 @@ import {
   Box,
   CircularProgress,
   Dialog,
+  Breadcrumb,
 } from "@trustee/ui";
 import { spacing } from "@trustee/ui";
 import { useChecklistTemplate, useDeleteChecklistTemplate } from "@/hooks";
@@ -64,6 +65,15 @@ export default function TemplateDetailPage() {
 
   return (
     <Box sx={{ p: `${spacing.pageInset}px` }}>
+      <Breadcrumb
+        items={[
+          { label: "대시보드", href: "/" },
+          { label: "점검 관리", href: "/inspections" },
+          { label: "체크리스트 템플릿", href: "/inspections/templates" },
+          { label: template.title },
+        ]}
+        onNavigate={(href) => router.push(href)}
+      />
       <PageHeader
         title={template.title}
         description={`버전 ${template.version} | ${template.categories.length}개 범주 | ${totalItems}개 항목`}
