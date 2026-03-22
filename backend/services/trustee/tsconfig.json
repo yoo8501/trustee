@@ -1,8 +1,0 @@
-{
-  "extends": "@trustee/config/typescript/service",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src"]
-}

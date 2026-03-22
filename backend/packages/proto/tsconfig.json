@@ -1,4 +1,0 @@
-{
-  "extends": "@trustee/config/typescript/library",
-  "include": ["src"]
-}
