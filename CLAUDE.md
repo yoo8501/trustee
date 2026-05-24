@@ -1,15 +1,17 @@
-# 수탁사 관리 시스템 (Trustee Management System)
+# DocFlow - 문서관리시스템 (Document Management System)
 
 ## 프로젝트 개요
-개인정보 처리 업무를 위탁받은 수탁사를 관리하는 시스템
+여러 회사가 사용할 수 있는 SaaS 문서관리시스템. 문서 업로드/다운로드, 폴더 분류, 버전 관리, 결재/승인 워크플로우를 지원한다.
 
 ## 기술 스택
-- **Framework**: Next.js 15 (App Router) + TypeScript
-- **UI**: MUI (Material-UI) + Tailwind CSS
-- **Database**: MySQL + Prisma ORM
-- **상태관리**: React Query (TanStack Query)
+- **Backend**: Go + Gin (REST API)
+- **DB**: PostgreSQL + sqlc + golang-migrate
+- **Frontend**: Next.js 15 (App Router) + TypeScript
+- **UI**: MUI (Material-UI)
+- **상태관리**: TanStack Query (React Query)
 - **폼 관리**: React Hook Form + Zod
-- **인증**: 추후 추가 예정
+- **인증**: Go 서버 JWT 직접 구현
+- **파일 저장**: 로컬 → AWS S3 전환 (스토리지 인터페이스 추상화)
 
 ## Definition of Done
 - [ ] 모든 테스트 통과
@@ -18,13 +20,8 @@
 - [ ] 콘솔 에러 없음
 - [ ] 코드 리뷰 완료
 
-## 테스트 계정 정보
-"email":"yooy8501@gamil.com","password":"Test1234!"
-
 ## 참조 문서
-@docs/architecture/ARCHITECTURE.md
-@docs/guides/CONVENTIONS.md
+@docs/01-plan/features/document-management-system.plan.md
 
-##주의
+## 주의
 질문과 답변은 한글로 해라
-
