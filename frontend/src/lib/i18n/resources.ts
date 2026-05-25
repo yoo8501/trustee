@@ -60,6 +60,7 @@ export const resources = {
       'error.USER_TERMINATED':
         '퇴사 처리된 계정이에요. 관리자에게 문의해 주세요',
       'error.CANNOT_DEMOTE_SELF': '본인의 권한은 변경할 수 없어요',
+      'error.CHECK_IN_REQUIRED': '출근 체크 먼저 해주세요',
       'error.unknown': '알 수 없는 오류가 발생했어요',
 
       // ----- Field-level validation -----
@@ -70,6 +71,31 @@ export const resources = {
       'error.field.password.min': '비밀번호는 8자 이상이에요',
       'error.field.password.strength': '영문, 숫자, 특수문자를 포함해 주세요',
       'error.field.name.required': '이름을 입력해 주세요',
+
+      // ----- Sprint 4 출퇴근 -----
+      'route.home.greeting': '{{name}} 님, 환영합니다.',
+      'route.home.subtitle': '오늘도 좋은 하루 보내세요.',
+      'attendance.checkin.label': '출근하기',
+      'attendance.checkin.done': '출근 완료 · {{time}}',
+      'attendance.checkin.aria': '출근 체크',
+      'attendance.checkin.success': '출근됨 · {{time}}',
+      'attendance.checkin.failed':
+        '출근 요청에 실패했어요. 다시 시도해 주세요.',
+      'attendance.checkout.label': '퇴근하기',
+      'attendance.checkout.done': '퇴근 완료 · {{time}}',
+      'attendance.checkout.aria': '퇴근 체크',
+      'attendance.checkout.success': '퇴근됨 — 수고하셨어요',
+      'attendance.checkout.failed':
+        '퇴근 요청에 실패했어요. 다시 시도해 주세요.',
+      'attendance.checkout.requirementHint': '출근 체크를 먼저 해주세요',
+      'attendance.autoClosed.alert':
+        '어제 퇴근 체크가 누락됐어요. 정정 신청해 주세요.',
+      'attendance.status.working': '출근 중',
+      'attendance.status.normal': '정상',
+      'attendance.status.late': '지각',
+      'attendance.status.early_leave': '조퇴',
+      'attendance.status.absent': '결근',
+      'attendance.status.auto_closed': '자동 마감',
     },
   },
   en: {
@@ -133,6 +159,7 @@ export const resources = {
       'error.USER_TERMINATED':
         'This account has been terminated. Contact your administrator.',
       'error.CANNOT_DEMOTE_SELF': 'You cannot change your own role',
+      'error.CHECK_IN_REQUIRED': 'Please check in first',
       'error.unknown': 'Unknown error',
 
       // ----- Field-level validation -----
@@ -144,6 +171,31 @@ export const resources = {
       'error.field.password.strength':
         'Include letters, numbers, and a symbol',
       'error.field.name.required': 'Name is required',
+
+      // ----- Sprint 4 attendance -----
+      'route.home.greeting': 'Welcome, {{name}}.',
+      'route.home.subtitle': 'Have a productive day.',
+      'attendance.checkin.label': 'Check in',
+      'attendance.checkin.done': 'Checked in · {{time}}',
+      'attendance.checkin.aria': 'Check in',
+      'attendance.checkin.success': 'Checked in · {{time}}',
+      'attendance.checkin.failed':
+        'Check-in failed. Please try again.',
+      'attendance.checkout.label': 'Check out',
+      'attendance.checkout.done': 'Checked out · {{time}}',
+      'attendance.checkout.aria': 'Check out',
+      'attendance.checkout.success': 'Checked out — great work today',
+      'attendance.checkout.failed':
+        'Check-out failed. Please try again.',
+      'attendance.checkout.requirementHint': 'Please check in first',
+      'attendance.autoClosed.alert':
+        'Yesterday\'s check-out is missing. Please submit a correction.',
+      'attendance.status.working': 'Working',
+      'attendance.status.normal': 'Normal',
+      'attendance.status.late': 'Late',
+      'attendance.status.early_leave': 'Early leave',
+      'attendance.status.absent': 'Absent',
+      'attendance.status.auto_closed': 'Auto-closed',
     },
   },
 } as const;

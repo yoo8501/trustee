@@ -125,6 +125,10 @@ describe('Critical Path 1 — 회원가입 → 로그인 → 대시보드', () =
           }),
         ),
       ),
+      // Sprint 4 — 대시보드의 출퇴근 카드가 today 를 fetch 한다
+      httpMsw.post('http://localhost:3000/api/hr/attendance/me/today', () =>
+        HttpResponse.json(ok({ record: null })),
+      ),
     );
 
     const user = userEvent.setup();
