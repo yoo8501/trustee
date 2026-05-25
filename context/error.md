@@ -34,6 +34,7 @@ Backend는 모든 실패 응답의 `details.errorCode`에 다음 enum 중 하나
 | `CANNOT_TERMINATE_SELF` | 400 | super_admin 본인이 본인 계정을 퇴사 처리 시도 (`POST /api/users/terminate`) | toast / form error |
 | `FILE_TOO_LARGE` | 413 | 첨부 파일 크기 초과 (Sprint 7 ExpenseReport 첨부, 최대 10MB) | inline 안내 ("최대 10MB") |
 | `INVALID_MIME_TYPE` | 400 | 첨부 파일 mime type 불일치 (Sprint 7 ExpenseReport, image/* / application/pdf 만 허용) | inline 안내 |
+| `DATE_RANGE_TOO_LARGE` | 400 | 캘린더/통계 조회 시 `to - from` 범위가 정책 한도 (3개월) 초과 (Sprint 8 공유 캘린더) | form field error 또는 toast |
 
 새 도메인 추가 시 기존 enum 재사용 우선. 신규 코드는 본 표 + Backend/Frontend 동시 반영.
 
