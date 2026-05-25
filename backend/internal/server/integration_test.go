@@ -308,6 +308,36 @@ func (f *fakeStore) CountHolidays(ctx context.Context, tenantID int64) (int64, e
 	return 0, nil
 }
 
+// ---- attendance stub ----
+//
+// Sprint 4: 통합 테스트는 attendance 라우트를 직접 호출하지 않으므로 안전한 default 만 반환.
+// 실제 attendance 동작은 internal/hr/attendance 단위 테스트에서 검증.
+
+func (f *fakeStore) GetAttendanceByUserDate(ctx context.Context, arg dbq.GetAttendanceByUserDateParams) (dbq.AttendanceRecord, error) {
+	return dbq.AttendanceRecord{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) CreateAttendanceCheckIn(ctx context.Context, arg dbq.CreateAttendanceCheckInParams) (dbq.AttendanceRecord, error) {
+	return dbq.AttendanceRecord{}, nil
+}
+
+func (f *fakeStore) UpdateAttendanceCheckOut(ctx context.Context, arg dbq.UpdateAttendanceCheckOutParams) (dbq.AttendanceRecord, error) {
+	return dbq.AttendanceRecord{}, nil
+}
+
+// ---- audit stub (Sprint 9) ----
+//
+// permission_matrix_test 가 HR/super_admin 으로 /api/hr/audit/attendance/list 를
+// 호출할 때 200 + 빈 목록을 돌려주면 충분 (감사 도메인 동작은 audit 패키지 단위 테스트에서 검증).
+
+func (f *fakeStore) SearchAttendanceAudit(ctx context.Context, arg dbq.SearchAttendanceAuditParams) ([]dbq.AttendanceRecord, error) {
+	return []dbq.AttendanceRecord{}, nil
+}
+
+func (f *fakeStore) CountAttendanceAudit(ctx context.Context, arg dbq.CountAttendanceAuditParams) (int64, error) {
+	return 0, nil
+}
+
 var _ server.DomainStore = (*fakeStore)(nil)
 
 // ---- 통합 테스트 ----

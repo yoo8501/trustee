@@ -10,8 +10,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/sjseo/docflow/backend/internal/admin"
 	"github.com/sjseo/docflow/backend/internal/auth"
 	dbq "github.com/sjseo/docflow/backend/internal/db/sqlc"
+	"github.com/sjseo/docflow/backend/internal/hr/attendance"
+	"github.com/sjseo/docflow/backend/internal/hr/audit"
 	"github.com/sjseo/docflow/backend/internal/hr/holiday"
 	"github.com/sjseo/docflow/backend/internal/hr/leave"
 	"github.com/sjseo/docflow/backend/internal/httpx/apiresult"
@@ -38,7 +41,7 @@ type Config struct {
 }
 
 // DomainStore — 도메인 핸들러가 사용하는 store. dbq.Queries 가 그대로 만족한다.
-// (auth.Store + users.Store + teams.Store + leave/holiday store 의 합집합.)
+// (auth.Store + users.Store + teams.Store + leave/holiday/attendance/audit/admin store 의 합집합.)
 type DomainStore interface {
 	auth.Store
 	users.Store
@@ -46,6 +49,10 @@ type DomainStore interface {
 	leave.LeaveTypeStore
 	leave.LeaveBalanceStore
 	holiday.Store
+	attendance.Store
+	attendance.UserStore
+	admin.Store
+	audit.Store
 }
 
 var _ DomainStore = (*dbq.Queries)(nil)
@@ -196,4 +203,31 @@ func registerDomainRoutes(eng *gin.Engine, cfg Config) {
 	holidaySvc := holiday.NewService(cfg.Store)
 	holidayH := holiday.NewHandler(holidaySvc)
 	api.POST("/hr/holidays/list", authMW.Required(), holidayH.List)
+
+	// ---- HR: attendance (출퇴근) ----
+	// Sprint 4: 본인의 출근/퇴근만 처리. team_lead/HR 조회 API 는 Sprint 5.
+	attendanceSvc := attendance.NewService(cfg.Store, cfg.Store)
+	attendanceH := attendance.NewHandler(attendanceSvc)
+	api.POST("/hr/attendance/check-in", authMW.Required(), attendanceH.CheckIn)
+	api.POST("/hr/attendance/check-out", authMW.Required(), attendanceH.CheckOut)
+
+	// ---- admin: user soft delete (Sprint 9) ----
+	// super_admin only. status='terminated' + token_version++ 동시 적용.
+	adminSvc := admin.NewService(cfg.Store)
+	adminH := admin.NewHandler(adminSvc)
+	api.POST("/users/terminate",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleSuperAdmin),
+		adminH.Terminate,
+	)
+
+	// ---- HR: audit (출퇴근 감사 로그, Sprint 9) ----
+	// HR + super_admin only. attendance_records SELECT only.
+	auditSvc := audit.NewService(cfg.Store)
+	auditH := audit.NewHandler(auditSvc)
+	api.POST("/hr/audit/attendance/list",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		auditH.AttendanceList,
+	)
 }
