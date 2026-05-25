@@ -11,7 +11,9 @@ import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, Outlet, useNavigate } from 'react-router';
 import { ThemeToggle } from '../components';
 import { AuthProvider, useAuth } from '../features/auth';
+import { usePendingExpenses } from '../features/expensereport';
 import { usePendingApprovals } from '../features/leaverequest';
+import { NotificationBell } from '../features/notification';
 
 /**
  * RootLayout — AppBar + Container + Outlet + AuthProvider 합성.
@@ -68,8 +70,17 @@ function Shell() {
   const { enqueueSnackbar } = useSnackbar();
 
   const isLead = !!user && LEAD_ROLES.has(user.role);
-  const pendingQ = usePendingApprovals({ enabled: isLead });
-  const pendingCount = pendingQ.data?.total ?? pendingQ.data?.items.length ?? 0;
+  const pendingLeaveQ = usePendingApprovals({ enabled: isLead });
+  const pendingExpenseQ = usePendingExpenses({ enabled: isLead });
+  const pendingLeaveCount =
+    pendingLeaveQ.data?.total ?? pendingLeaveQ.data?.items.length ?? 0;
+  const pendingExpenseCount =
+    pendingExpenseQ.data?.total ?? pendingExpenseQ.data?.items.length ?? 0;
+  /**
+   * Sprint 8 — 결재함 배지는 leave + expense 합산 카운트.
+   * (개별 진입은 leave/approvals 와 expense/approvals 둘 다 유지)
+   */
+  const pendingCount = pendingLeaveCount + pendingExpenseCount;
 
   const handleLogout = async () => {
     await logout();
@@ -138,6 +149,28 @@ function Shell() {
                 {t('nav.leave')}
               </Button>
             )}
+            {isAuthenticated && (
+              <Button
+                component={RouterLink}
+                to="/expense/new"
+                size="small"
+                color="inherit"
+                data-testid="header-expense-link"
+              >
+                {t('nav.expense')}
+              </Button>
+            )}
+            {isAuthenticated && (
+              <Button
+                component={RouterLink}
+                to="/calendar"
+                size="small"
+                color="inherit"
+                data-testid="header-calendar-link"
+              >
+                {t('nav.calendar')}
+              </Button>
+            )}
             {isAuthenticated && isLead && (
               <Button
                 component={RouterLink}
@@ -154,6 +187,17 @@ function Shell() {
                 >
                   {t('nav.leave.approvals')}
                 </Badge>
+              </Button>
+            )}
+            {isAuthenticated && isLead && (
+              <Button
+                component={RouterLink}
+                to="/expense/approvals"
+                size="small"
+                color="inherit"
+                data-testid="header-expense-approvals-link"
+              >
+                {t('nav.expense.approvals')}
               </Button>
             )}
             {!isAuthenticated && (
@@ -198,6 +242,7 @@ function Shell() {
               {t('nav.healthz')}
             </Button>
           </Stack>
+          {isAuthenticated && <NotificationBell enabled={isAuthenticated} />}
           {isAuthenticated && (
             <Stack direction="row" spacing={1} alignItems="center">
               <Typography

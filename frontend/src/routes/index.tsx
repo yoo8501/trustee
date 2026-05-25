@@ -6,8 +6,14 @@ import { AdminLeaveTypesPage } from './admin/leave-types';
 import { AdminTeamsPage } from './admin/teams';
 import { AdminUsersPage } from './admin/users';
 import { AttendanceRoute } from './attendance';
+import { CalendarRoute } from './calendar';
 import { HealthzRoute } from './healthz';
 import { HomeRoute } from './home';
+import {
+  ExpenseApprovalsPage,
+  ExpenseMyPage,
+  ExpenseNewPage,
+} from './expense';
 import {
   LeaveApprovalsPage,
   LeaveMyPage,
@@ -70,6 +76,45 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'calendar',
+        element: (
+          <ProtectedRoute>
+            <CalendarRoute />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'expense',
+        children: [
+          {
+            path: 'new',
+            element: (
+              <ProtectedRoute>
+                <ExpenseNewPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'my',
+            element: (
+              <ProtectedRoute>
+                <ExpenseMyPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'approvals',
+            element: (
+              <ProtectedRoute>
+                <RoleGuard minRole="team_lead">
+                  <ExpenseApprovalsPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            ),
+          },
+        ],
+      },
+      {
         path: 'leave',
         children: [
           {
@@ -113,6 +158,10 @@ export {
   AdminTeamsPage,
   AdminUsersPage,
   AttendanceRoute,
+  CalendarRoute,
+  ExpenseApprovalsPage,
+  ExpenseMyPage,
+  ExpenseNewPage,
   HealthzRoute,
   HomeRoute,
   LeaveApprovalsPage,

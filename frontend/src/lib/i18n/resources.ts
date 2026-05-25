@@ -330,6 +330,99 @@ export const resources = {
       'error.field.endAt.invalid': '종료 날짜 형식이 올바르지 않아요',
       'error.field.hours.required': '시간을 입력해 주세요',
       'error.field.leaveTypeId.required': '휴가 종류를 선택해 주세요',
+
+      // ----- Sprint 7 지출결의서 -----
+      'nav.expense': '지출',
+      'nav.expense.new': '지출 신청',
+      'nav.expense.my': '내 지출',
+      'nav.expense.approvals': '지출 결재함',
+      'expense.create.title': '지출결의서 신청',
+      'expense.create.subtitle':
+        '신청 후 직속 결재자에게 즉시 알림이 갑니다.',
+      'expense.create.amount': '금액',
+      'expense.create.amount.hint': '예: 12,000 (원)',
+      'expense.create.vendor': '거래처',
+      'expense.create.vendor.placeholder': '예: ○○식당',
+      'expense.create.purpose': '사유',
+      'expense.create.purpose.placeholder': '예: 거래처 미팅 식대',
+      'expense.create.paidAt': '결제일',
+      'expense.create.attachment': '첨부 (영수증/명세서)',
+      'expense.create.submit': '신청하기',
+      'expense.create.success':
+        '지출결의서 제출됨 — 결재자: {{approver}}',
+      'expense.create.successWithoutApprover':
+        '지출결의서 제출됨 — 결재자 자동 배정',
+      'expense.create.shortcut': 'Cmd/Ctrl + Enter 로 빠른 제출',
+      'expense.create.draftRestored': '이전 입력값을 복구했어요',
+      'expense.create.requirementHint':
+        '금액·거래처·사유·결제일을 모두 입력해 주세요',
+      'expense.create.approverHint':
+        '{{name}} 님에게 결재 요청이 전송됩니다',
+
+      'expense.attachment.drop': '파일을 끌어다 놓거나 클릭해서 선택',
+      'expense.attachment.click': '이미지 또는 PDF · 최대 10MB',
+      'expense.attachment.preview': '미리보기 / 다운로드',
+      'expense.attachment.oversize': '파일이 10MB 를 초과해요',
+      'expense.attachment.invalidMime':
+        '이미지 또는 PDF 파일만 첨부할 수 있어요',
+
+      'expense.my.title': '내 지출',
+      'expense.my.subtitle': '신청한 지출결의서와 진행 상태를 확인하세요.',
+      'expense.my.empty': '신청한 지출결의서가 없어요',
+      'expense.my.newButton': '+ 지출 신청',
+      'expense.my.loadError': '목록을 불러오지 못했어요',
+
+      'expense.cancel.button': '취소',
+      'expense.cancel.undoMessage':
+        '지출결의서 취소 — 5초 안 되돌리기 가능',
+      'expense.cancel.success': '지출결의서를 취소했어요',
+      'expense.cancel.error': '취소에 실패했어요',
+
+      'expense.approvals.title': '지출 결재 대기함',
+      'expense.approvals.subtitle':
+        '결재 대기 중인 지출결의서를 처리하세요.',
+      'expense.approvals.empty': '대기 중인 결재가 없어요',
+      'expense.approvals.col.requester': '신청자',
+      'expense.approvals.col.paidAt': '결제일',
+      'expense.approvals.col.amount': '금액',
+      'expense.approvals.col.vendor': '거래처',
+      'expense.approvals.col.purpose': '사유',
+      'expense.approvals.col.attachment': '첨부',
+      'expense.approvals.col.actions': '액션',
+      'expense.approvals.approve.success': '승인했어요',
+      'expense.approvals.reject.success': '반려했어요',
+      'expense.approvals.reject.dialog.title': '반려 사유 입력',
+      'expense.approvals.reject.dialog.reason': '반려 사유',
+      'expense.approvals.reject.dialog.submit': '반려',
+      'expense.approvals.reject.reasonRequired':
+        '반려 사유를 입력해 주세요',
+      'expense.approvals.loadError': '목록을 불러오지 못했어요',
+
+      'error.FILE_TOO_LARGE': '파일이 10MB 를 초과해요',
+      'error.INVALID_MIME_TYPE': '이미지 또는 PDF 파일만 첨부할 수 있어요',
+      'error.field.amountWon.positive': '0 보다 큰 금액을 입력해 주세요',
+      'error.field.vendor.required': '거래처를 입력해 주세요',
+      'error.field.purpose.required': '사유를 입력해 주세요',
+      'error.field.paidAt.required': '결제일을 선택해 주세요',
+
+      // ----- Sprint 8 캘린더 + 알림 -----
+      'nav.calendar': '캘린더',
+      'calendar.title': '캘린더',
+      'calendar.view.day': '일',
+      'calendar.view.week': '주',
+      'calendar.view.month': '월',
+      'calendar.today': '오늘',
+      'calendar.prev': '이전',
+      'calendar.next': '다음',
+      'calendar.empty': '일정이 없어요',
+      'calendar.event.holiday': '공휴일',
+      'calendar.event.leave': '휴가',
+      'calendar.event.attendance': '내 출퇴근',
+      'notification.bell': '알림',
+      'notification.dropdown.title': '알림',
+      'notification.dropdown.empty': '새 알림이 없어요',
+      'notification.dropdown.readAll': '모두 읽음',
+      'error.DATE_RANGE_TOO_LARGE': '조회 기간이 너무 길어요 (최대 3개월)',
     },
   },
   en: {
@@ -662,6 +755,99 @@ export const resources = {
       'error.field.endAt.invalid': 'Invalid end date format',
       'error.field.hours.required': 'Please enter hours',
       'error.field.leaveTypeId.required': 'Please choose a leave type',
+
+      // ----- Sprint 7 expense report -----
+      'nav.expense': 'Expense',
+      'nav.expense.new': 'New expense',
+      'nav.expense.my': 'My expense',
+      'nav.expense.approvals': 'Expense approvals',
+      'expense.create.title': 'Request expense',
+      'expense.create.subtitle':
+        'Your direct approver will be notified immediately.',
+      'expense.create.amount': 'Amount (KRW)',
+      'expense.create.amount.hint': 'e.g. 12,000',
+      'expense.create.vendor': 'Vendor',
+      'expense.create.vendor.placeholder': 'e.g. Acme Restaurant',
+      'expense.create.purpose': 'Purpose',
+      'expense.create.purpose.placeholder':
+        'e.g. Client meeting meal',
+      'expense.create.paidAt': 'Paid on',
+      'expense.create.attachment': 'Attachment (receipt / statement)',
+      'expense.create.submit': 'Submit',
+      'expense.create.success':
+        'Expense submitted — approver: {{approver}}',
+      'expense.create.successWithoutApprover':
+        'Expense submitted — approver auto-assigned',
+      'expense.create.shortcut': 'Press Cmd/Ctrl + Enter to submit',
+      'expense.create.draftRestored': 'Restored your previous draft',
+      'expense.create.requirementHint':
+        'Please fill in amount, vendor, purpose, and paid-on',
+      'expense.create.approverHint': '{{name}} will be notified',
+
+      'expense.attachment.drop': 'Drag a file here, or click to pick',
+      'expense.attachment.click': 'Image or PDF · max 10MB',
+      'expense.attachment.preview': 'Preview / download',
+      'expense.attachment.oversize': 'File exceeds 10MB',
+      'expense.attachment.invalidMime':
+        'Only image or PDF files are allowed',
+
+      'expense.my.title': 'My expense',
+      'expense.my.subtitle': 'Track your submitted expense reports.',
+      'expense.my.empty': 'No expense reports yet',
+      'expense.my.newButton': '+ New expense',
+      'expense.my.loadError': 'Failed to load list',
+
+      'expense.cancel.button': 'Cancel',
+      'expense.cancel.undoMessage':
+        'Cancellation pending — undo within 5 seconds',
+      'expense.cancel.success': 'Expense cancelled',
+      'expense.cancel.error': 'Failed to cancel',
+
+      'expense.approvals.title': 'Expense approvals',
+      'expense.approvals.subtitle':
+        'Process expense reports awaiting your action.',
+      'expense.approvals.empty': 'No approvals pending',
+      'expense.approvals.col.requester': 'Requester',
+      'expense.approvals.col.paidAt': 'Paid on',
+      'expense.approvals.col.amount': 'Amount',
+      'expense.approvals.col.vendor': 'Vendor',
+      'expense.approvals.col.purpose': 'Purpose',
+      'expense.approvals.col.attachment': 'Attachment',
+      'expense.approvals.col.actions': 'Actions',
+      'expense.approvals.approve.success': 'Approved',
+      'expense.approvals.reject.success': 'Rejected',
+      'expense.approvals.reject.dialog.title': 'Reject reason',
+      'expense.approvals.reject.dialog.reason': 'Reason',
+      'expense.approvals.reject.dialog.submit': 'Reject',
+      'expense.approvals.reject.reasonRequired':
+        'Please enter a rejection reason',
+      'expense.approvals.loadError': 'Failed to load list',
+
+      'error.FILE_TOO_LARGE': 'File exceeds 10MB',
+      'error.INVALID_MIME_TYPE': 'Only image or PDF files are allowed',
+      'error.field.amountWon.positive': 'Please enter an amount greater than 0',
+      'error.field.vendor.required': 'Vendor is required',
+      'error.field.purpose.required': 'Purpose is required',
+      'error.field.paidAt.required': 'Please pick a paid-on date',
+
+      // ----- Sprint 8 calendar + notifications -----
+      'nav.calendar': 'Calendar',
+      'calendar.title': 'Calendar',
+      'calendar.view.day': 'Day',
+      'calendar.view.week': 'Week',
+      'calendar.view.month': 'Month',
+      'calendar.today': 'Today',
+      'calendar.prev': 'Previous',
+      'calendar.next': 'Next',
+      'calendar.empty': 'No events',
+      'calendar.event.holiday': 'Holiday',
+      'calendar.event.leave': 'Leave',
+      'calendar.event.attendance': 'My attendance',
+      'notification.bell': 'Notifications',
+      'notification.dropdown.title': 'Notifications',
+      'notification.dropdown.empty': 'No new notifications',
+      'notification.dropdown.readAll': 'Mark all as read',
+      'error.DATE_RANGE_TOO_LARGE': 'Date range too large (max 3 months)',
     },
   },
 } as const;
