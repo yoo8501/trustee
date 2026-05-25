@@ -7,9 +7,97 @@ package dbq
 import (
 	"database/sql/driver"
 	"fmt"
+	"net/netip"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type AttendanceSource string
+
+const (
+	AttendanceSourceButton           AttendanceSource = "button"
+	AttendanceSourceManualCorrection AttendanceSource = "manual_correction"
+)
+
+func (e *AttendanceSource) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AttendanceSource(s)
+	case string:
+		*e = AttendanceSource(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AttendanceSource: %T", src)
+	}
+	return nil
+}
+
+type NullAttendanceSource struct {
+	AttendanceSource AttendanceSource `json:"attendance_source"`
+	Valid            bool             `json:"valid"` // Valid is true if AttendanceSource is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAttendanceSource) Scan(value interface{}) error {
+	if value == nil {
+		ns.AttendanceSource, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AttendanceSource.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAttendanceSource) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AttendanceSource), nil
+}
+
+type AttendanceStatus string
+
+const (
+	AttendanceStatusNormal     AttendanceStatus = "normal"
+	AttendanceStatusLate       AttendanceStatus = "late"
+	AttendanceStatusEarlyLeave AttendanceStatus = "early_leave"
+	AttendanceStatusAbsent     AttendanceStatus = "absent"
+	AttendanceStatusAutoClosed AttendanceStatus = "auto_closed"
+)
+
+func (e *AttendanceStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AttendanceStatus(s)
+	case string:
+		*e = AttendanceStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AttendanceStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAttendanceStatus struct {
+	AttendanceStatus AttendanceStatus `json:"attendance_status"`
+	Valid            bool             `json:"valid"` // Valid is true if AttendanceStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAttendanceStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AttendanceStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AttendanceStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAttendanceStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AttendanceStatus), nil
+}
 
 type UserRole string
 
@@ -97,6 +185,22 @@ func (ns NullUserStatus) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.UserStatus), nil
+}
+
+type AttendanceRecord struct {
+	ID                int64              `json:"id"`
+	TenantID          int64              `json:"tenant_id"`
+	UserID            int64              `json:"user_id"`
+	WorkDate          pgtype.Date        `json:"work_date"`
+	CheckInAt         pgtype.Timestamptz `json:"check_in_at"`
+	CheckOutAt        pgtype.Timestamptz `json:"check_out_at"`
+	LunchBreakMinutes int32              `json:"lunch_break_minutes"`
+	Source            AttendanceSource   `json:"source"`
+	ClientIp          *netip.Addr        `json:"client_ip"`
+	UserAgent         pgtype.Text        `json:"user_agent"`
+	Status            AttendanceStatus   `json:"status"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Holiday struct {

@@ -12,16 +12,19 @@ import (
 
 type Querier interface {
 	AdjustLeaveBalanceHours(ctx context.Context, arg AdjustLeaveBalanceHoursParams) (LeaveBalance, error)
+	CountAttendanceAudit(ctx context.Context, arg CountAttendanceAuditParams) (int64, error)
 	CountHolidays(ctx context.Context, tenantID int64) (int64, error)
 	CountLeaveTypes(ctx context.Context, tenantID int64) (int64, error)
 	CountTeams(ctx context.Context, tenantID int64) (int64, error)
 	CountUsers(ctx context.Context, tenantID int64) (int64, error)
+	CreateAttendanceCheckIn(ctx context.Context, arg CreateAttendanceCheckInParams) (AttendanceRecord, error)
 	CreateLeaveBalanceAdjustment(ctx context.Context, arg CreateLeaveBalanceAdjustmentParams) (LeaveBalanceAdjustment, error)
 	CreateLeaveType(ctx context.Context, arg CreateLeaveTypeParams) (LeaveType, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteExpiredRefreshTokens(ctx context.Context, expiresAt pgtype.Timestamptz) error
+	GetAttendanceByUserDate(ctx context.Context, arg GetAttendanceByUserDateParams) (AttendanceRecord, error)
 	GetHolidayByID(ctx context.Context, arg GetHolidayByIDParams) (Holiday, error)
 	GetLeaveBalanceByID(ctx context.Context, arg GetLeaveBalanceByIDParams) (LeaveBalance, error)
 	GetLeaveBalanceForUserTypeYear(ctx context.Context, arg GetLeaveBalanceForUserTypeYearParams) (LeaveBalance, error)
@@ -41,15 +44,26 @@ type Querier interface {
 	ListLeaveBalancesByUser(ctx context.Context, arg ListLeaveBalancesByUserParams) ([]LeaveBalance, error)
 	ListLeaveBalancesByUserYear(ctx context.Context, arg ListLeaveBalancesByUserYearParams) ([]LeaveBalance, error)
 	ListLeaveTypes(ctx context.Context, arg ListLeaveTypesParams) ([]LeaveType, error)
+	// 자정 KST cron 이 사용. work_date = yesterday(KST) AND check_out_at IS NULL.
+	ListOpenAttendanceForDate(ctx context.Context, workDate pgtype.Date) ([]AttendanceRecord, error)
 	ListTeams(ctx context.Context, arg ListTeamsParams) ([]Team, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	// 자정 cron 이 호출. check_out_at 은 NULL 유지, status 만 auto_closed 로 마킹.
+	MarkAttendanceAutoClosed(ctx context.Context, ids []int64) error
 	// 1회용 회전: used_at IS NULL 인 경우에만 마킹 성공. 이미 used 인 경우 0 rows.
 	// 호출자가 RETURNING 결과로 0 rows 여부를 판단해 reuse 감지를 수행한다.
 	MarkRefreshTokenUsed(ctx context.Context, jti pgtype.UUID) (RefreshToken, error)
 	ReleaseAdvisoryLockAccrual(ctx context.Context, dollar_1 int64) (bool, error)
+	// Sprint 9: 출퇴근 감사 로그 조회 — HR/super_admin only.
+	// 본 쿼리는 attendance_records 위에서 SELECT only (Sprint 4 BE 의 attendance.sql 와 분리).
+	// nullable filter pattern: sqlc.narg() 가 NULL 이면 해당 필터 무시.
+	//   * 사용자 / 기간 / source / client_ip 필터 조합.
+	//   * client_ip 는 INET 컬럼 → host(client_ip) 로 텍스트 매칭 (CIDR 매칭 미사용 — 정확 일치).
+	SearchAttendanceAudit(ctx context.Context, arg SearchAttendanceAuditParams) ([]AttendanceRecord, error)
 	SoftDeleteLeaveType(ctx context.Context, arg SoftDeleteLeaveTypeParams) error
 	SoftDeleteTeam(ctx context.Context, arg SoftDeleteTeamParams) error
 	TryAdvisoryLockAccrual(ctx context.Context, dollar_1 int64) (bool, error)
+	UpdateAttendanceCheckOut(ctx context.Context, arg UpdateAttendanceCheckOutParams) (AttendanceRecord, error)
 	UpdateLeaveType(ctx context.Context, arg UpdateLeaveTypeParams) (LeaveType, error)
 	UpdateTeam(ctx context.Context, arg UpdateTeamParams) (Team, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
