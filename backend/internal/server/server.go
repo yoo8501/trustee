@@ -12,6 +12,8 @@ import (
 
 	"github.com/sjseo/docflow/backend/internal/auth"
 	dbq "github.com/sjseo/docflow/backend/internal/db/sqlc"
+	"github.com/sjseo/docflow/backend/internal/hr/holiday"
+	"github.com/sjseo/docflow/backend/internal/hr/leave"
 	"github.com/sjseo/docflow/backend/internal/httpx/apiresult"
 	"github.com/sjseo/docflow/backend/internal/httpx/errorcode"
 	"github.com/sjseo/docflow/backend/internal/httpx/middleware"
@@ -36,11 +38,14 @@ type Config struct {
 }
 
 // DomainStore — 도메인 핸들러가 사용하는 store. dbq.Queries 가 그대로 만족한다.
-// (auth.Store + users.Store + teams.Store 의 합집합.)
+// (auth.Store + users.Store + teams.Store + leave/holiday store 의 합집합.)
 type DomainStore interface {
 	auth.Store
 	users.Store
 	teams.Store
+	leave.LeaveTypeStore
+	leave.LeaveBalanceStore
+	holiday.Store
 }
 
 var _ DomainStore = (*dbq.Queries)(nil)
@@ -155,4 +160,40 @@ func registerDomainRoutes(eng *gin.Engine, cfg Config) {
 		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
 		teamH.Delete,
 	)
+
+	// ---- HR: leave types ----
+	leaveTypeSvc := leave.NewLeaveTypeService(cfg.Store)
+	leaveTypeH := leave.NewLeaveTypeHandler(leaveTypeSvc)
+	api.GET("/hr/leave-types/:id", authMW.Required(), leaveTypeH.Get)
+	api.POST("/hr/leave-types/list", authMW.Required(), leaveTypeH.List)
+	api.POST("/hr/leave-types",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		leaveTypeH.Create,
+	)
+	api.POST("/hr/leave-types/update",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		leaveTypeH.Update,
+	)
+	api.POST("/hr/leave-types/delete",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		leaveTypeH.Delete,
+	)
+
+	// ---- HR: leave balances ----
+	leaveBalSvc := leave.NewLeaveBalanceService(cfg.Store)
+	leaveBalH := leave.NewLeaveBalanceHandler(leaveBalSvc)
+	api.GET("/hr/leave-balances/me", authMW.Required(), leaveBalH.Me)
+	api.POST("/hr/leave-balances/:user_id/adjust",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		leaveBalH.Adjust,
+	)
+
+	// ---- HR: holidays ----
+	holidaySvc := holiday.NewService(cfg.Store)
+	holidayH := holiday.NewHandler(holidaySvc)
+	api.POST("/hr/holidays/list", authMW.Required(), holidayH.List)
 }

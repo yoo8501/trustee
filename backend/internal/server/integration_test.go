@@ -231,6 +231,83 @@ func (f *fakeStore) SoftDeleteTeam(ctx context.Context, arg dbq.SoftDeleteTeamPa
 	return nil
 }
 
+// ---- leave_types / leave_balances / holidays / leave_balance_adjustments ----
+// 본 통합 테스트는 라우팅 + 권한 미들웨어가 주관심사이므로 메모리 모킹은 최소.
+// 도메인 동작 검증은 hr/leave, hr/holiday 패키지 단위 테스트에서 한다.
+
+func (f *fakeStore) GetLeaveTypeByID(ctx context.Context, arg dbq.GetLeaveTypeByIDParams) (dbq.LeaveType, error) {
+	return dbq.LeaveType{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) GetLeaveTypeByCode(ctx context.Context, arg dbq.GetLeaveTypeByCodeParams) (dbq.LeaveType, error) {
+	return dbq.LeaveType{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) ListLeaveTypes(ctx context.Context, arg dbq.ListLeaveTypesParams) ([]dbq.LeaveType, error) {
+	return []dbq.LeaveType{}, nil
+}
+
+func (f *fakeStore) CountLeaveTypes(ctx context.Context, tenantID int64) (int64, error) {
+	return 0, nil
+}
+
+func (f *fakeStore) CreateLeaveType(ctx context.Context, arg dbq.CreateLeaveTypeParams) (dbq.LeaveType, error) {
+	return dbq.LeaveType{ID: 1, TenantID: arg.TenantID, Code: arg.Code, Name: arg.Name,
+		DefaultHours: arg.DefaultHours, AccrualPolicy: arg.AccrualPolicy,
+		IsPaid: arg.IsPaid, IsActive: arg.IsActive}, nil
+}
+
+func (f *fakeStore) UpdateLeaveType(ctx context.Context, arg dbq.UpdateLeaveTypeParams) (dbq.LeaveType, error) {
+	return dbq.LeaveType{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) SoftDeleteLeaveType(ctx context.Context, arg dbq.SoftDeleteLeaveTypeParams) error {
+	return nil
+}
+
+func (f *fakeStore) GetLeaveBalanceByID(ctx context.Context, arg dbq.GetLeaveBalanceByIDParams) (dbq.LeaveBalance, error) {
+	return dbq.LeaveBalance{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) GetLeaveBalanceForUserTypeYear(ctx context.Context, arg dbq.GetLeaveBalanceForUserTypeYearParams) (dbq.LeaveBalance, error) {
+	return dbq.LeaveBalance{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) ListLeaveBalancesByUser(ctx context.Context, arg dbq.ListLeaveBalancesByUserParams) ([]dbq.LeaveBalance, error) {
+	return []dbq.LeaveBalance{}, nil
+}
+
+func (f *fakeStore) UpsertLeaveBalanceGrant(ctx context.Context, arg dbq.UpsertLeaveBalanceGrantParams) (dbq.LeaveBalance, error) {
+	return dbq.LeaveBalance{ID: 1, TenantID: arg.TenantID, UserID: arg.UserID,
+		LeaveTypeID: arg.LeaveTypeID, PeriodYear: arg.PeriodYear,
+		GrantedHours: arg.GrantedHours, ExpiresAt: arg.ExpiresAt}, nil
+}
+
+func (f *fakeStore) AdjustLeaveBalanceHours(ctx context.Context, arg dbq.AdjustLeaveBalanceHoursParams) (dbq.LeaveBalance, error) {
+	return dbq.LeaveBalance{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) CreateLeaveBalanceAdjustment(ctx context.Context, arg dbq.CreateLeaveBalanceAdjustmentParams) (dbq.LeaveBalanceAdjustment, error) {
+	return dbq.LeaveBalanceAdjustment{ID: 1, TenantID: arg.TenantID, BalanceID: arg.BalanceID,
+		ActorUserID: arg.ActorUserID, DeltaHours: arg.DeltaHours, Reason: arg.Reason}, nil
+}
+
+func (f *fakeStore) GetHolidayByID(ctx context.Context, arg dbq.GetHolidayByIDParams) (dbq.Holiday, error) {
+	return dbq.Holiday{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) ListHolidays(ctx context.Context, tenantID int64) ([]dbq.Holiday, error) {
+	return []dbq.Holiday{}, nil
+}
+
+func (f *fakeStore) ListHolidaysInRange(ctx context.Context, arg dbq.ListHolidaysInRangeParams) ([]dbq.Holiday, error) {
+	return []dbq.Holiday{}, nil
+}
+
+func (f *fakeStore) CountHolidays(ctx context.Context, tenantID int64) (int64, error) {
+	return 0, nil
+}
+
 var _ server.DomainStore = (*fakeStore)(nil)
 
 // ---- 통합 테스트 ----
