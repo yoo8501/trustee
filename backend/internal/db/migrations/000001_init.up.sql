@@ -1,0 +1,1 @@
+-- Sprint 1: initial empty migration. 도메인 테이블은 Sprint 2 이후 추가.
