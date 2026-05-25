@@ -112,12 +112,15 @@ func NewEngine(cfg Config) (*gin.Engine, error) {
 	)
 
 	// 헬스체크 - 단순 liveness probe. Sprint 1 단계에서 DB 의존 없음.
-	eng.GET("/health", func(c *gin.Context) {
+	// /health (k8s/caddy probe용) + /api/health (Vite proxy 경유 FE healthz 페이지용) 둘 다 노출.
+	healthHandler := func(c *gin.Context) {
 		type healthData struct {
 			Status string `json:"status"`
 		}
 		c.JSON(http.StatusOK, apiresult.Success(healthData{Status: "ok"}))
-	})
+	}
+	eng.GET("/health", healthHandler)
+	eng.GET("/api/health", healthHandler)
 
 	// 의도된 실패 라우트 - ApiResult 실패 envelope shape 와 INTERNAL_ERROR 매핑 검증용.
 	// 운영 환경에서는 본 라우트를 제거하거나 dev 전용 그룹으로 격리할 예정.

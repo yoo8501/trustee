@@ -61,6 +61,30 @@ func TestHealth_ReturnsApiResultSuccess(t *testing.T) {
 	}
 }
 
+// TestApiHealth_ReturnsApiResultSuccess: /api/health 는 /health 와 동일한 ApiResult.
+// Vite dev proxy(/api/*) + Caddy prod routing 양쪽에서 FE healthz 페이지가 호출.
+func TestApiHealth_ReturnsApiResultSuccess(t *testing.T) {
+	eng := newEngine(t)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/health", nil)
+	w := httptest.NewRecorder()
+	eng.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200, body=%s", w.Code, w.Body.String())
+	}
+	type healthData struct {
+		Status string `json:"status"`
+	}
+	var env apiresult.Envelope[healthData]
+	if err := json.Unmarshal(w.Body.Bytes(), &env); err != nil {
+		t.Fatalf("unmarshal failed: %v body=%s", err, w.Body.String())
+	}
+	if !env.Success || env.Data == nil || env.Data.Status != "ok" {
+		t.Fatalf("envelope = %+v, want success+data{status:ok}", env)
+	}
+}
+
 // TestDebugError_ReturnsApiResultFailure: /debug/error 는 500 + INTERNAL_ERROR.
 func TestDebugError_ReturnsApiResultFailure(t *testing.T) {
 	eng := newEngine(t)

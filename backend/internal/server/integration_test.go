@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/sjseo/docflow/backend/internal/auth"
 	dbq "github.com/sjseo/docflow/backend/internal/db/sqlc"
@@ -368,27 +369,27 @@ func (f *fakeStore) ListTeamDescendants(ctx context.Context, arg dbq.ListTeamDes
 // 통합 테스트는 leave-requests 라우트 자체 검증보다는 라우터/권한 게이트 동작에 집중.
 // 안전 default — 모든 조회는 ErrNoRows, 변경 메서드는 빈 결과.
 
-func (f *fakeStore) GetLeaveRequestByID(ctx context.Context, arg dbq.GetLeaveRequestByIDParams) (dbq.LeaveRequest, error) {
-	return dbq.LeaveRequest{}, pgx.ErrNoRows
+func (f *fakeStore) GetLeaveRequestByID(ctx context.Context, arg dbq.GetLeaveRequestByIDParams) (dbq.LeaveRequestApproval, error) {
+	return dbq.LeaveRequestApproval{}, pgx.ErrNoRows
 }
 
-func (f *fakeStore) GetLeaveRequestForUpdate(ctx context.Context, arg dbq.GetLeaveRequestForUpdateParams) (dbq.LeaveRequest, error) {
-	return dbq.LeaveRequest{}, pgx.ErrNoRows
+func (f *fakeStore) GetLeaveRequestForUpdate(ctx context.Context, arg dbq.GetLeaveRequestForUpdateParams) (dbq.LeaveRequestApproval, error) {
+	return dbq.LeaveRequestApproval{}, pgx.ErrNoRows
 }
 
-func (f *fakeStore) CreateLeaveRequest(ctx context.Context, arg dbq.CreateLeaveRequestParams) (dbq.LeaveRequest, error) {
-	return dbq.LeaveRequest{}, pgx.ErrNoRows
+func (f *fakeStore) CreateLeaveRequest(ctx context.Context, arg dbq.CreateLeaveRequestParams) (dbq.LeaveRequestApproval, error) {
+	return dbq.LeaveRequestApproval{}, pgx.ErrNoRows
 }
 
-func (f *fakeStore) FindOverlappingLeaveRequests(ctx context.Context, arg dbq.FindOverlappingLeaveRequestsParams) ([]dbq.LeaveRequest, error) {
+func (f *fakeStore) FindOverlappingLeaveRequests(ctx context.Context, arg dbq.FindOverlappingLeaveRequestsParams) ([]dbq.LeaveRequestApproval, error) {
 	return nil, nil
 }
 
-func (f *fakeStore) CancelLeaveRequest(ctx context.Context, arg dbq.CancelLeaveRequestParams) (dbq.LeaveRequest, error) {
-	return dbq.LeaveRequest{}, pgx.ErrNoRows
+func (f *fakeStore) CancelLeaveRequest(ctx context.Context, arg dbq.CancelLeaveRequestParams) (dbq.LeaveRequestApproval, error) {
+	return dbq.LeaveRequestApproval{}, pgx.ErrNoRows
 }
 
-func (f *fakeStore) ListLeaveRequestsByRequester(ctx context.Context, arg dbq.ListLeaveRequestsByRequesterParams) ([]dbq.LeaveRequest, error) {
+func (f *fakeStore) ListLeaveRequestsByRequester(ctx context.Context, arg dbq.ListLeaveRequestsByRequesterParams) ([]dbq.LeaveRequestApproval, error) {
 	return nil, nil
 }
 
@@ -396,7 +397,7 @@ func (f *fakeStore) CountLeaveRequestsByRequester(ctx context.Context, arg dbq.C
 	return 0, nil
 }
 
-func (f *fakeStore) ListPendingLeaveRequestsByApprover(ctx context.Context, arg dbq.ListPendingLeaveRequestsByApproverParams) ([]dbq.LeaveRequest, error) {
+func (f *fakeStore) ListPendingLeaveRequestsByApprover(ctx context.Context, arg dbq.ListPendingLeaveRequestsByApproverParams) ([]dbq.LeaveRequestApproval, error) {
 	return nil, nil
 }
 
@@ -404,8 +405,8 @@ func (f *fakeStore) CountPendingLeaveRequestsByApprover(ctx context.Context, arg
 	return 0, nil
 }
 
-func (f *fakeStore) UpdateLeaveRequestDecision(ctx context.Context, arg dbq.UpdateLeaveRequestDecisionParams) (dbq.LeaveRequest, error) {
-	return dbq.LeaveRequest{}, pgx.ErrNoRows
+func (f *fakeStore) UpdateLeaveRequestDecision(ctx context.Context, arg dbq.UpdateLeaveRequestDecisionParams) (dbq.LeaveRequestApproval, error) {
+	return dbq.LeaveRequestApproval{}, pgx.ErrNoRows
 }
 
 func (f *fakeStore) IncrementLeaveBalanceUsed(ctx context.Context, arg dbq.IncrementLeaveBalanceUsedParams) (dbq.LeaveBalance, error) {
@@ -440,8 +441,8 @@ func (f *fakeStore) ListActiveDelegationsByDelegator(ctx context.Context, arg db
 
 // ---- expensereport stubs (Sprint 7) — 통합 테스트는 expense API 를 호출하지 않으므로 noop. ----
 
-func (f *fakeStore) CancelExpenseReport(_ context.Context, _ dbq.CancelExpenseReportParams) (dbq.ExpenseReport, error) {
-	return dbq.ExpenseReport{}, pgx.ErrNoRows
+func (f *fakeStore) CancelExpenseReport(_ context.Context, _ dbq.CancelExpenseReportParams) (dbq.ExpenseReportApproval, error) {
+	return dbq.ExpenseReportApproval{}, pgx.ErrNoRows
 }
 func (f *fakeStore) CountExpenseReportsByRequester(_ context.Context, _ dbq.CountExpenseReportsByRequesterParams) (int64, error) {
 	return 0, nil
@@ -449,26 +450,26 @@ func (f *fakeStore) CountExpenseReportsByRequester(_ context.Context, _ dbq.Coun
 func (f *fakeStore) CountPendingExpenseReportsByApprover(_ context.Context, _ dbq.CountPendingExpenseReportsByApproverParams) (int64, error) {
 	return 0, nil
 }
-func (f *fakeStore) CreateExpenseReport(_ context.Context, _ dbq.CreateExpenseReportParams) (dbq.ExpenseReport, error) {
-	return dbq.ExpenseReport{}, nil
+func (f *fakeStore) CreateExpenseReport(_ context.Context, _ dbq.CreateExpenseReportParams) (dbq.ExpenseReportApproval, error) {
+	return dbq.ExpenseReportApproval{}, nil
 }
-func (f *fakeStore) GetExpenseReportByID(_ context.Context, _ dbq.GetExpenseReportByIDParams) (dbq.ExpenseReport, error) {
-	return dbq.ExpenseReport{}, pgx.ErrNoRows
+func (f *fakeStore) GetExpenseReportByID(_ context.Context, _ dbq.GetExpenseReportByIDParams) (dbq.ExpenseReportApproval, error) {
+	return dbq.ExpenseReportApproval{}, pgx.ErrNoRows
 }
-func (f *fakeStore) GetExpenseReportForUpdate(_ context.Context, _ dbq.GetExpenseReportForUpdateParams) (dbq.ExpenseReport, error) {
-	return dbq.ExpenseReport{}, pgx.ErrNoRows
+func (f *fakeStore) GetExpenseReportForUpdate(_ context.Context, _ dbq.GetExpenseReportForUpdateParams) (dbq.ExpenseReportApproval, error) {
+	return dbq.ExpenseReportApproval{}, pgx.ErrNoRows
 }
-func (f *fakeStore) ListExpenseReportsByRequester(_ context.Context, _ dbq.ListExpenseReportsByRequesterParams) ([]dbq.ExpenseReport, error) {
+func (f *fakeStore) ListExpenseReportsByRequester(_ context.Context, _ dbq.ListExpenseReportsByRequesterParams) ([]dbq.ExpenseReportApproval, error) {
 	return nil, nil
 }
-func (f *fakeStore) ListPendingExpenseReportsByApprover(_ context.Context, _ dbq.ListPendingExpenseReportsByApproverParams) ([]dbq.ExpenseReport, error) {
+func (f *fakeStore) ListPendingExpenseReportsByApprover(_ context.Context, _ dbq.ListPendingExpenseReportsByApproverParams) ([]dbq.ExpenseReportApproval, error) {
 	return nil, nil
 }
-func (f *fakeStore) UpdateExpenseReportAttachment(_ context.Context, _ dbq.UpdateExpenseReportAttachmentParams) (dbq.ExpenseReport, error) {
-	return dbq.ExpenseReport{}, nil
+func (f *fakeStore) UpdateExpenseReportAttachment(_ context.Context, _ dbq.UpdateExpenseReportAttachmentParams) (dbq.ExpenseReportApproval, error) {
+	return dbq.ExpenseReportApproval{}, nil
 }
-func (f *fakeStore) UpdateExpenseReportDecision(_ context.Context, _ dbq.UpdateExpenseReportDecisionParams) (dbq.ExpenseReport, error) {
-	return dbq.ExpenseReport{}, nil
+func (f *fakeStore) UpdateExpenseReportDecision(_ context.Context, _ dbq.UpdateExpenseReportDecisionParams) (dbq.ExpenseReportApproval, error) {
+	return dbq.ExpenseReportApproval{}, nil
 }
 
 // ---- notification stubs (Sprint 8). ----
@@ -520,6 +521,21 @@ func newIntegrationEngine(t *testing.T) (*fakeStore, *gin.Engine) {
 		TenantID:  1,
 		Store:     store,
 		JWTIssuer: auth.NewTokenIssuer(intSecret),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return store, eng
+}
+
+func newIntegrationEngineWithPool(t *testing.T) (*fakeStore, *gin.Engine) {
+	t.Helper()
+	store := newFakeStore()
+	eng, err := server.NewEngine(server.Config{
+		TenantID:  1,
+		Store:     store,
+		JWTIssuer: auth.NewTokenIssuer(intSecret),
+		Pool:      &pgxpool.Pool{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -646,6 +662,47 @@ func TestIntegration_TeamsCRUD_HROnly(t *testing.T) {
 	w, _ = postJSON(t, eng, "/api/teams/list", pair.AccessToken, map[string]any{})
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d", w.Code)
+	}
+}
+
+func TestIntegration_DomainRoutes_WithPoolRegistered(t *testing.T) {
+	_, eng := newIntegrationEngineWithPool(t)
+	pair := registerAndLogin(t, eng, "u@example.com", "Pass1234")
+
+	cases := []struct {
+		name string
+		path string
+		want int
+	}{
+		{name: "leave me list", path: "/api/hr/leave-requests/me/list", want: http.StatusOK},
+		{name: "expense me list", path: "/api/hr/expense-reports/me/list", want: http.StatusOK},
+		{name: "leave pending requires team lead", path: "/api/hr/leave-requests/pending/list", want: http.StatusForbidden},
+		{name: "expense pending requires team lead", path: "/api/hr/expense-reports/pending/list", want: http.StatusForbidden},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			w, raw := postJSON(t, eng, tc.path, pair.AccessToken, map[string]any{})
+			if w.Code != tc.want {
+				t.Fatalf("status = %d, want %d body=%s", w.Code, tc.want, raw)
+			}
+		})
+	}
+}
+
+func TestIntegration_AttendanceStatsMe_EnrichesActorTeamContext(t *testing.T) {
+	store, eng := newIntegrationEngine(t)
+	pair := registerAndLogin(t, eng, "u@example.com", "Pass1234")
+	for id, u := range store.users {
+		u.TeamID = pgtype.Int8{Int64: 77, Valid: true}
+		store.users[id] = u
+	}
+
+	w, raw := postJSON(t, eng, "/api/hr/attendance/me/stats", pair.AccessToken, map[string]any{
+		"period": "day",
+		"date":   "2026-05-25",
+	})
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", w.Code, raw)
 	}
 }
 
