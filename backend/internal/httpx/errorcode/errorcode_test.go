@@ -18,6 +18,11 @@ func TestEnumValues(t *testing.T) {
 		"Conflict":           "CONFLICT",
 		"RateLimited":        "RATE_LIMITED",
 		"ExternalServiceErr": "EXTERNAL_SERVICE_ERROR",
+		"TokenExpired":       "TOKEN_EXPIRED",
+		"CannotDemoteSelf":   "CANNOT_DEMOTE_SELF",
+		"UserTerminated":     "USER_TERMINATED",
+		"EmailDuplicate":     "EMAIL_DUPLICATE",
+		"InvalidCredentials": "INVALID_CREDENTIALS",
 	}
 
 	got := map[string]string{
@@ -30,6 +35,11 @@ func TestEnumValues(t *testing.T) {
 		"Conflict":           errorcode.Conflict,
 		"RateLimited":        errorcode.RateLimited,
 		"ExternalServiceErr": errorcode.ExternalServiceErr,
+		"TokenExpired":       errorcode.TokenExpired,
+		"CannotDemoteSelf":   errorcode.CannotDemoteSelf,
+		"UserTerminated":     errorcode.UserTerminated,
+		"EmailDuplicate":     errorcode.EmailDuplicate,
+		"InvalidCredentials": errorcode.InvalidCredentials,
 	}
 
 	for name, want := range cases {

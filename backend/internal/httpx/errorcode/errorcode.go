@@ -23,4 +23,16 @@ const (
 	RateLimited = "RATE_LIMITED"
 	// ExternalServiceErr — 외부 시스템 오류 (502).
 	ExternalServiceErr = "EXTERNAL_SERVICE_ERROR"
+
+	// TokenExpired — JWT access/refresh 만료 (401). UNAUTHENTICATED 보다 구체적 신호로,
+	// 프론트가 refresh 시도 분기 / 강제 logout 분기를 구분하는 데 사용한다.
+	TokenExpired = "TOKEN_EXPIRED"
+	// CannotDemoteSelf — 본인 role 강등 시도 (400). super_admin 본인이 본인 role 을 낮추려 할 때 발생.
+	CannotDemoteSelf = "CANNOT_DEMOTE_SELF"
+	// UserTerminated — terminated 상태 user 의 로그인 시도 (400).
+	UserTerminated = "USER_TERMINATED"
+	// EmailDuplicate — 회원가입 시 이미 존재하는 email (400). VALIDATION_FAILED 의 특수 케이스.
+	EmailDuplicate = "EMAIL_DUPLICATE"
+	// InvalidCredentials — 로그인 자격 증명 불일치 (400). UNAUTHENTICATED 와 구분 — 로그인 폼에 직접 노출 가능한 코드.
+	InvalidCredentials = "INVALID_CREDENTIALS"
 )

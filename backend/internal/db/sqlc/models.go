@@ -3,3 +3,138 @@
 //   sqlc v1.30.0
 
 package dbq
+
+import (
+	"database/sql/driver"
+	"fmt"
+
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type UserRole string
+
+const (
+	UserRoleGeneral    UserRole = "general"
+	UserRoleTeamLead   UserRole = "team_lead"
+	UserRoleDeptHead   UserRole = "dept_head"
+	UserRoleHrManager  UserRole = "hr_manager"
+	UserRoleSuperAdmin UserRole = "super_admin"
+)
+
+func (e *UserRole) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserRole(s)
+	case string:
+		*e = UserRole(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserRole: %T", src)
+	}
+	return nil
+}
+
+type NullUserRole struct {
+	UserRole UserRole `json:"user_role"`
+	Valid    bool     `json:"valid"` // Valid is true if UserRole is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserRole) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserRole, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserRole.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserRole) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserRole), nil
+}
+
+type UserStatus string
+
+const (
+	UserStatusActive     UserStatus = "active"
+	UserStatusInactive   UserStatus = "inactive"
+	UserStatusTerminated UserStatus = "terminated"
+)
+
+func (e *UserStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserStatus(s)
+	case string:
+		*e = UserStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserStatus: %T", src)
+	}
+	return nil
+}
+
+type NullUserStatus struct {
+	UserStatus UserStatus `json:"user_status"`
+	Valid      bool       `json:"valid"` // Valid is true if UserStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserStatus), nil
+}
+
+type RefreshToken struct {
+	Jti       pgtype.UUID        `json:"jti"`
+	UserID    int64              `json:"user_id"`
+	TenantID  int64              `json:"tenant_id"`
+	IssuedAt  pgtype.Timestamptz `json:"issued_at"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	UsedAt    pgtype.Timestamptz `json:"used_at"`
+}
+
+type Team struct {
+	ID           int64              `json:"id"`
+	TenantID     int64              `json:"tenant_id"`
+	Name         string             `json:"name"`
+	ParentTeamID pgtype.Int8        `json:"parent_team_id"`
+	TeamLeadID   pgtype.Int8        `json:"team_lead_id"`
+	HrManagerID  pgtype.Int8        `json:"hr_manager_id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
+}
+
+type User struct {
+	ID            int64              `json:"id"`
+	TenantID      int64              `json:"tenant_id"`
+	Email         string             `json:"email"`
+	PasswordHash  string             `json:"password_hash"`
+	Name          string             `json:"name"`
+	Status        UserStatus         `json:"status"`
+	TeamID        pgtype.Int8        `json:"team_id"`
+	ManagerID     pgtype.Int8        `json:"manager_id"`
+	HireDate      pgtype.Date        `json:"hire_date"`
+	Role          UserRole           `json:"role"`
+	WorkStartTime pgtype.Time        `json:"work_start_time"`
+	WorkEndTime   pgtype.Time        `json:"work_end_time"`
+	TokenVersion  int32              `json:"token_version"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
+}

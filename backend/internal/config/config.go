@@ -19,6 +19,9 @@ type Config struct {
 	TenantID int64
 	// Env 는 실행 환경 식별자 (dev / staging / prod). 기본 "dev".
 	Env string
+	// JWTSecret 은 access / refresh 서명 키. 운영에선 필수, 미설정 시 main start fatal.
+	// 개발 편의를 위해 dev 환경에선 안전한 기본값 fallback 을 허용한다.
+	JWTSecret string
 }
 
 // Load 는 환경 변수에서 Config 를 읽는다.
@@ -28,12 +31,14 @@ type Config struct {
 //   - DATABASE_URL        (default "")
 //   - DOCFLOW_TENANT_ID   (default 1)
 //   - DOCFLOW_ENV         (default "dev")
+//   - JWT_SECRET          (default "" — dev 외에는 main 에서 fatal 검증)
 func Load() Config {
 	return Config{
 		Addr:        getEnvDefault("DOCFLOW_ADDR", ":8080"),
 		DatabaseURL: os.Getenv("DATABASE_URL"),
 		TenantID:    getEnvInt64Default("DOCFLOW_TENANT_ID", 1),
 		Env:         getEnvDefault("DOCFLOW_ENV", "dev"),
+		JWTSecret:   os.Getenv("JWT_SECRET"),
 	}
 }
 

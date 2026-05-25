@@ -6,12 +6,31 @@ package dbq
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
-	// Sprint 1: sqlc 부트스트랩 검증용 trivial query.
-	// 실제 도메인 query 는 Sprint 2 이후 추가.
-	Ping(ctx context.Context) (int32, error)
+	CountTeams(ctx context.Context, tenantID int64) (int64, error)
+	CountUsers(ctx context.Context, tenantID int64) (int64, error)
+	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error
+	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteExpiredRefreshTokens(ctx context.Context, expiresAt pgtype.Timestamptz) error
+	GetRefreshToken(ctx context.Context, jti pgtype.UUID) (RefreshToken, error)
+	GetTeamByID(ctx context.Context, arg GetTeamByIDParams) (Team, error)
+	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (User, error)
+	GetUserByID(ctx context.Context, arg GetUserByIDParams) (User, error)
+	GetUserTokenVersion(ctx context.Context, arg GetUserTokenVersionParams) (GetUserTokenVersionRow, error)
+	IncrementUserTokenVersion(ctx context.Context, arg IncrementUserTokenVersionParams) (int32, error)
+	ListTeams(ctx context.Context, arg ListTeamsParams) ([]Team, error)
+	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	// 1회용 회전: used_at IS NULL 인 경우에만 마킹 성공. 이미 used 인 경우 0 rows.
+	// 호출자가 RETURNING 결과로 0 rows 여부를 판단해 reuse 감지를 수행한다.
+	MarkRefreshTokenUsed(ctx context.Context, jti pgtype.UUID) (RefreshToken, error)
+	SoftDeleteTeam(ctx context.Context, arg SoftDeleteTeamParams) error
+	UpdateTeam(ctx context.Context, arg UpdateTeamParams) (Team, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)
