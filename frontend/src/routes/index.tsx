@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router';
-import { ProtectedRoute, PublicOnlyRoute } from '../components';
+import { ProtectedRoute, PublicOnlyRoute, RoleGuard } from '../components';
 import { AdminAttendanceAuditPage } from './admin/audit-attendance';
 import { AdminLayout } from './admin/_layout';
 import { AdminLeaveTypesPage } from './admin/leave-types';
@@ -8,6 +8,11 @@ import { AdminUsersPage } from './admin/users';
 import { AttendanceRoute } from './attendance';
 import { HealthzRoute } from './healthz';
 import { HomeRoute } from './home';
+import {
+  LeaveApprovalsPage,
+  LeaveMyPage,
+  LeaveNewPage,
+} from './leave';
 import { LoginRoute } from './login';
 import { NotFoundRoute } from './not-found';
 import { RegisterRoute } from './register';
@@ -64,6 +69,37 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: 'leave',
+        children: [
+          {
+            path: 'new',
+            element: (
+              <ProtectedRoute>
+                <LeaveNewPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'my',
+            element: (
+              <ProtectedRoute>
+                <LeaveMyPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'approvals',
+            element: (
+              <ProtectedRoute>
+                <RoleGuard minRole="team_lead">
+                  <LeaveApprovalsPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            ),
+          },
+        ],
+      },
       { path: 'healthz', Component: HealthzRoute },
       { path: '*', Component: NotFoundRoute },
     ],
@@ -79,6 +115,9 @@ export {
   AttendanceRoute,
   HealthzRoute,
   HomeRoute,
+  LeaveApprovalsPage,
+  LeaveMyPage,
+  LeaveNewPage,
   LoginRoute,
   NotFoundRoute,
   RegisterRoute,

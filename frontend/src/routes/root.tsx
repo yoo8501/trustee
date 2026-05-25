@@ -5,11 +5,13 @@ import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import Badge from '@mui/material/Badge';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, Outlet, useNavigate } from 'react-router';
 import { ThemeToggle } from '../components';
 import { AuthProvider, useAuth } from '../features/auth';
+import { usePendingApprovals } from '../features/leaverequest';
 
 /**
  * RootLayout — AppBar + Container + Outlet + AuthProvider 합성.
@@ -52,11 +54,22 @@ function RootShell() {
   );
 }
 
+const LEAD_ROLES = new Set([
+  'team_lead',
+  'dept_head',
+  'hr_manager',
+  'super_admin',
+]);
+
 function Shell() {
   const { t } = useTranslation();
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+
+  const isLead = !!user && LEAD_ROLES.has(user.role);
+  const pendingQ = usePendingApprovals({ enabled: isLead });
+  const pendingCount = pendingQ.data?.total ?? pendingQ.data?.items.length ?? 0;
 
   const handleLogout = async () => {
     await logout();
@@ -112,6 +125,35 @@ function Shell() {
                 data-testid="header-attendance-link"
               >
                 {t('nav.attendance')}
+              </Button>
+            )}
+            {isAuthenticated && (
+              <Button
+                component={RouterLink}
+                to="/leave/new"
+                size="small"
+                color="inherit"
+                data-testid="header-leave-link"
+              >
+                {t('nav.leave')}
+              </Button>
+            )}
+            {isAuthenticated && isLead && (
+              <Button
+                component={RouterLink}
+                to="/leave/approvals"
+                size="small"
+                color="inherit"
+                data-testid="header-approvals-link"
+              >
+                <Badge
+                  color="error"
+                  badgeContent={pendingCount}
+                  max={99}
+                  sx={{ '& .MuiBadge-badge': { right: -10, top: 2 } }}
+                >
+                  {t('nav.leave.approvals')}
+                </Badge>
               </Button>
             )}
             {!isAuthenticated && (
