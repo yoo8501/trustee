@@ -1,0 +1,3 @@
+name,parent_name,team_lead_email,hr_manager_email
+개발팀,,bob@example.com,carol@example.com
+HR팀,,,carol@example.com

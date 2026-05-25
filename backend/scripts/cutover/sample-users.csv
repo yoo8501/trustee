@@ -1,0 +1,4 @@
+email,name,team_name,manager_email,hire_date,role,work_start,work_end
+alice@example.com,홍길동,개발팀,bob@example.com,2024-03-15,general,09:00,18:00
+bob@example.com,김길순,개발팀,,2022-01-10,team_lead,09:00,18:00
+carol@example.com,박철수,HR팀,,2020-06-01,hr_manager,09:00,18:00

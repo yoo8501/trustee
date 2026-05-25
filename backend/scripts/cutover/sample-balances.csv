@@ -1,0 +1,4 @@
+user_email,leave_type_code,period_year,granted_hours,used_hours
+alice@example.com,annual,2026,120.0,16.0
+bob@example.com,annual,2026,144.0,40.0
+carol@example.com,annual,2026,160.0,0.0
