@@ -19,8 +19,11 @@ Backend는 모든 실패 응답의 `details.errorCode`에 다음 enum 중 하나
 | `RATE_LIMITED` | 429 | rate limit 초과 | toast + backoff |
 | `INTERNAL_ERROR` | 500 | 서버 내부 오류 | global toast |
 | `EXTERNAL_SERVICE_ERROR` | 502 | 외부 시스템 오류 | 재시도 안내 toast |
-| `APPROVAL_INVALID_STATE` | 409 | 결재 상태 전이 불가 (예: 완료된 결재 재승인) | mutation hook 메시지 |
-| `LEAVE_BALANCE_INSUFFICIENT` | 409 | 연차 잔여 부족 | mutation hook 메시지 |
+| `APPROVAL_INVALID_STATE` | 409 | 결재 상태 전이 불가 (예: 완료된 결재 재승인 / 본인 외 취소 / pending 외 취소) | mutation hook 메시지 |
+| `LEAVE_BALANCE_INSUFFICIENT` | 409 | 연차 잔여 부족 (legacy 별칭 — Sprint 6 신규는 `INSUFFICIENT_LEAVE_BALANCE` 사용) | mutation hook 메시지 |
+| `INSUFFICIENT_LEAVE_BALANCE` | 409 | 휴가 신청 시 잔여 부족 (Sprint 6). `details.shortfall_hours` 동봉. | form inline 사유 |
+| `DUPLICATE_LEAVE_DATE` | 409 | 같은 사용자의 pending/approved 신청과 날짜 겹침 (Sprint 6) | form 단계 차단 + 안내 |
+| `INVALID_DATE_RANGE` | 400 | `start_at > end_at` 등 날짜 순서 위반 (Sprint 6) | form field error |
 | `TOKEN_EXPIRED` | 401 | JWT access/refresh 만료 (UNAUTHENTICATED 보다 구체적 — refresh 시도 분기에 사용) | global interceptor → refresh 시도 |
 | `INVALID_CREDENTIALS` | 400 | 로그인 자격 증명 불일치 (이메일/비밀번호) | 로그인 폼 inline 에러 |
 | `EMAIL_DUPLICATE` | 400 | 회원가입 시 이미 존재하는 이메일 | form field error |
