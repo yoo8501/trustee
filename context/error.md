@@ -32,6 +32,8 @@ Backend는 모든 실패 응답의 `details.errorCode`에 다음 enum 중 하나
 | `INVALID_ACCRUAL_POLICY` | 400 | 휴가 종류 적립 정책 JSON 스키마 검증 실패 (type 누락 / unknown type / 음수 / cap < base 등) | form field error |
 | `CHECK_IN_REQUIRED` | 400 | 퇴근(/check-out) 시도 시 같은 날 출근 record 가 없음 (Sprint 4 출퇴근) | inline 안내 ("출근 체크 먼저 해주세요") |
 | `CANNOT_TERMINATE_SELF` | 400 | super_admin 본인이 본인 계정을 퇴사 처리 시도 (`POST /api/users/terminate`) | toast / form error |
+| `FILE_TOO_LARGE` | 413 | 첨부 파일 크기 초과 (Sprint 7 ExpenseReport 첨부, 최대 10MB) | inline 안내 ("최대 10MB") |
+| `INVALID_MIME_TYPE` | 400 | 첨부 파일 mime type 불일치 (Sprint 7 ExpenseReport, image/* / application/pdf 만 허용) | inline 안내 |
 
 새 도메인 추가 시 기존 enum 재사용 우선. 신규 코드는 본 표 + Backend/Frontend 동시 반영.
 
