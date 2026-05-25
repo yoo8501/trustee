@@ -27,6 +27,8 @@ Backend는 모든 실패 응답의 `details.errorCode`에 다음 enum 중 하나
 | `USER_TERMINATED` | 400 | 퇴사 처리된(`status=terminated`) 사용자 로그인 시도 | 로그인 폼 inline 에러 |
 | `CANNOT_DEMOTE_SELF` | 400 | 본인 role 강등 시도 (super_admin 본인이 본인 role 을 낮추려 함) | toast / form error |
 | `INVALID_ACCRUAL_POLICY` | 400 | 휴가 종류 적립 정책 JSON 스키마 검증 실패 (type 누락 / unknown type / 음수 / cap < base 등) | form field error |
+| `CHECK_IN_REQUIRED` | 400 | 퇴근(/check-out) 시도 시 같은 날 출근 record 가 없음 (Sprint 4 출퇴근) | inline 안내 ("출근 체크 먼저 해주세요") |
+| `CANNOT_TERMINATE_SELF` | 400 | super_admin 본인이 본인 계정을 퇴사 처리 시도 (`POST /api/users/terminate`) | toast / form error |
 
 새 도메인 추가 시 기존 enum 재사용 우선. 신규 코드는 본 표 + Backend/Frontend 동시 반영.
 

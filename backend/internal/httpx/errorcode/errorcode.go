@@ -38,4 +38,10 @@ const (
 	// InvalidAccrualPolicy — leave_type.accrual_policy JSON 스키마 검증 실패 (400).
 	// VALIDATION_FAILED 보다 구체적 — FE 가 별도 안내 문구 표시 가능.
 	InvalidAccrualPolicy = "INVALID_ACCRUAL_POLICY"
+	// CheckInRequired — 퇴근 (/check-out) 시도 시 같은 날 출근 record 가 없는 경우 (400).
+	// Sprint 4 출퇴근 도메인. FE 는 inline 안내 ("출근 체크 먼저 해주세요").
+	CheckInRequired = "CHECK_IN_REQUIRED"
+	// CannotTerminateSelf — super_admin 본인이 본인 계정을 terminate 처리하려 시도 (400).
+	// Sprint 9 관리자 화면 + 감사 로그 도메인. FE 는 toast / form error.
+	CannotTerminateSelf = "CANNOT_TERMINATE_SELF"
 )
