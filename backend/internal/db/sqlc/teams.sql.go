@@ -93,6 +93,49 @@ func (q *Queries) GetTeamByID(ctx context.Context, arg GetTeamByIDParams) (Team,
 	return i, err
 }
 
+const listTeamDescendants = `-- name: ListTeamDescendants :many
+WITH RECURSIVE descendants AS (
+    SELECT t0.id, t0.parent_team_id
+    FROM teams t0
+    WHERE t0.id = $1
+      AND t0.tenant_id = $2
+      AND t0.deleted_at IS NULL
+    UNION ALL
+    SELECT t.id, t.parent_team_id
+    FROM teams t
+    JOIN descendants d ON t.parent_team_id = d.id
+    WHERE t.tenant_id = $2
+      AND t.deleted_at IS NULL
+)
+SELECT d.id FROM descendants d ORDER BY d.id ASC
+`
+
+type ListTeamDescendantsParams struct {
+	RootTeamID int64 `json:"root_team_id"`
+	TenantID   int64 `json:"tenant_id"`
+}
+
+// Sprint 5: dept_head 산하 팀 전체 (자기 자신 포함) 펼치기. 재귀 CTE.
+func (q *Queries) ListTeamDescendants(ctx context.Context, arg ListTeamDescendantsParams) ([]int64, error) {
+	rows, err := q.db.Query(ctx, listTeamDescendants, arg.RootTeamID, arg.TenantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTeams = `-- name: ListTeams :many
 SELECT id, tenant_id, name, parent_team_id, team_lead_id, hr_manager_id,
        created_at, updated_at, deleted_at

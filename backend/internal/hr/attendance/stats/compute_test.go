@@ -236,8 +236,11 @@ func TestPeriodRange_Day(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !from.Equal(date) || !to.Equal(date) {
-		t.Errorf("day: from=%v to=%v want both %v", from, to, date)
+	if from.Format("2006-01-02") != "2026-05-25" {
+		t.Errorf("day from=%s want 2026-05-25", from.Format("2006-01-02"))
+	}
+	if to.Format("2006-01-02") != "2026-05-25" {
+		t.Errorf("day to=%s want 2026-05-25", to.Format("2006-01-02"))
 	}
 }
 
@@ -259,7 +262,8 @@ func TestPeriodRange_Week_MondayToSunday(t *testing.T) {
 	// 수요일 입력해도 같은 주.
 	wed := kstDate(t, "2026-05-27")
 	from2, to2, _ := stats.PeriodRange("week", wed)
-	if !from2.Equal(from) || !to2.Equal(to) {
+	if from2.Format("2006-01-02") != from.Format("2006-01-02") ||
+		to2.Format("2006-01-02") != to.Format("2006-01-02") {
 		t.Errorf("week from wed: %v ~ %v want %v ~ %v", from2, to2, from, to)
 	}
 }

@@ -5,6 +5,7 @@
 package server
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -14,9 +15,11 @@ import (
 	"github.com/sjseo/docflow/backend/internal/auth"
 	dbq "github.com/sjseo/docflow/backend/internal/db/sqlc"
 	"github.com/sjseo/docflow/backend/internal/hr/attendance"
+	"github.com/sjseo/docflow/backend/internal/hr/attendance/stats"
 	"github.com/sjseo/docflow/backend/internal/hr/audit"
 	"github.com/sjseo/docflow/backend/internal/hr/holiday"
 	"github.com/sjseo/docflow/backend/internal/hr/leave"
+	"github.com/sjseo/docflow/backend/internal/hr/scope"
 	"github.com/sjseo/docflow/backend/internal/httpx/apiresult"
 	"github.com/sjseo/docflow/backend/internal/httpx/errorcode"
 	"github.com/sjseo/docflow/backend/internal/httpx/middleware"
@@ -53,6 +56,8 @@ type DomainStore interface {
 	attendance.UserStore
 	admin.Store
 	audit.Store
+	stats.SQLCQuerier
+	scope.HierarchyQuerier
 }
 
 var _ DomainStore = (*dbq.Queries)(nil)
@@ -205,11 +210,40 @@ func registerDomainRoutes(eng *gin.Engine, cfg Config) {
 	api.POST("/hr/holidays/list", authMW.Required(), holidayH.List)
 
 	// ---- HR: attendance (출퇴근) ----
-	// Sprint 4: 본인의 출근/퇴근만 처리. team_lead/HR 조회 API 는 Sprint 5.
+	// Sprint 4: 본인의 출근/퇴근만 처리.
 	attendanceSvc := attendance.NewService(cfg.Store, cfg.Store)
 	attendanceH := attendance.NewHandler(attendanceSvc)
 	api.POST("/hr/attendance/check-in", authMW.Required(), attendanceH.CheckIn)
 	api.POST("/hr/attendance/check-out", authMW.Required(), attendanceH.CheckOut)
+
+	// ---- HR: attendance stats (Sprint 5) ----
+	// me / team / all 통계 — Scoped Querier 가 권한 강제 + Repository 단에서 tenant scope.
+	statsAttStore := stats.NewSQLAttendanceStore(cfg.Store)
+	statsUserStore := stats.NewSQLUserStore(cfg.Store)
+	statsHierarchy := scope.NewSQLHierarchy(cfg.Store)
+	statsSvc := stats.NewService(statsAttStore, statsUserStore, cfg.Store, statsHierarchy, stats.NoopLeaveAdjustmentFetcher{})
+	statsH := stats.NewHandler(statsSvc)
+
+	// /me : 모든 인증 사용자 본인 통계.
+	api.POST("/hr/attendance/me/stats",
+		authMW.Required(),
+		statsTeamContext(cfg.Store, cfg.TenantID),
+		statsH.Mine,
+	)
+	// /team/:teamId : team_lead+ (자기 팀) — Scoped Querier 가 dept_head 산하까지 펼침.
+	api.POST("/hr/attendance/team/:teamId/stats",
+		authMW.Required(),
+		authMW.RequireAtLeast(permission.RoleTeamLead),
+		statsTeamContext(cfg.Store, cfg.TenantID),
+		statsH.Team,
+	)
+	// /all : HR / super_admin only.
+	api.POST("/hr/attendance/all/stats",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		statsTeamContext(cfg.Store, cfg.TenantID),
+		statsH.All,
+	)
 
 	// ---- admin: user soft delete (Sprint 9) ----
 	// super_admin only. status='terminated' + token_version++ 동시 적용.
@@ -231,3 +265,32 @@ func registerDomainRoutes(eng *gin.Engine, cfg Config) {
 		auditH.AttendanceList,
 	)
 }
+
+// statsTeamContext — Sprint 5 stats 핸들러용 미들웨어.
+//
+// JWT 미들웨어가 user/role/tenant 만 주입하므로, stats.Handler 가 [scope.Actor] 구성에
+// 필요한 actor.TeamID 를 user 테이블에서 한 번 조회해 c.Set("auth:team_id", ...) 한다.
+// DB 1회 lookup 비용은 통계 API 빈도가 낮아 허용 (P2 이후 JWT claims 에 teamId 포함 검토).
+func statsTeamContext(store interface {
+	GetUserByID(ctx gincontext, arg dbq.GetUserByIDParams) (dbq.User, error)
+}, defaultTenant int64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		uid, ok := auth.UserIDFrom(c)
+		if !ok {
+			c.Next()
+			return
+		}
+		tid, _ := auth.TenantIDFrom(c)
+		if tid == 0 {
+			tid = defaultTenant
+		}
+		u, err := store.GetUserByID(c.Request.Context(), dbq.GetUserByIDParams{ID: uid, TenantID: tid})
+		if err == nil && u.TeamID.Valid {
+			c.Set("auth:team_id", u.TeamID.Int64)
+		}
+		c.Next()
+	}
+}
+
+// gincontext — store 인터페이스 매개변수가 context.Context 인 것을 만족시키기 위한 alias.
+type gincontext = context.Context

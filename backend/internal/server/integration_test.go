@@ -338,6 +338,31 @@ func (f *fakeStore) CountAttendanceAudit(ctx context.Context, arg dbq.CountAtten
 	return 0, nil
 }
 
+// ---- attendance stats stubs (Sprint 5) ----
+//
+// 통합 테스트는 stats 라우트 동작 자체는 검증하지 않고 라우터 등록/미들웨어 게이트만 확인.
+// 안전 default (빈 결과) 만 반환.
+
+func (f *fakeStore) ListAttendanceByUserRange(ctx context.Context, arg dbq.ListAttendanceByUserRangeParams) ([]dbq.AttendanceRecord, error) {
+	return []dbq.AttendanceRecord{}, nil
+}
+
+func (f *fakeStore) ListAttendanceByTeamsRange(ctx context.Context, arg dbq.ListAttendanceByTeamsRangeParams) ([]dbq.AttendanceRecord, error) {
+	return []dbq.AttendanceRecord{}, nil
+}
+
+func (f *fakeStore) ListAttendanceByTenantRange(ctx context.Context, arg dbq.ListAttendanceByTenantRangeParams) ([]dbq.AttendanceRecord, error) {
+	return []dbq.AttendanceRecord{}, nil
+}
+
+func (f *fakeStore) ListUsersByTeams(ctx context.Context, arg dbq.ListUsersByTeamsParams) ([]dbq.User, error) {
+	return []dbq.User{}, nil
+}
+
+func (f *fakeStore) ListTeamDescendants(ctx context.Context, arg dbq.ListTeamDescendantsParams) ([]int64, error) {
+	return []int64{arg.RootTeamID}, nil
+}
+
 var _ server.DomainStore = (*fakeStore)(nil)
 
 // ---- 통합 테스트 ----

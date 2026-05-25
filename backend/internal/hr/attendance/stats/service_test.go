@@ -110,11 +110,11 @@ type fakeHierarchy struct {
 	descendants map[int64][]int64
 }
 
-func (f fakeHierarchy) DescendantsOf(teamID int64) []int64 {
+func (f fakeHierarchy) DescendantsOf(_ context.Context, _, teamID int64) ([]int64, error) {
 	if v, ok := f.descendants[teamID]; ok {
-		return v
+		return v, nil
 	}
-	return []int64{teamID}
+	return []int64{teamID}, nil
 }
 
 // ---- helpers ----

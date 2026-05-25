@@ -46,3 +46,20 @@ SET deleted_at = now(),
 WHERE id = $1
   AND tenant_id = $2
   AND deleted_at IS NULL;
+
+-- name: ListTeamDescendants :many
+-- Sprint 5: dept_head 산하 팀 전체 (자기 자신 포함) 펼치기. 재귀 CTE.
+WITH RECURSIVE descendants AS (
+    SELECT t0.id, t0.parent_team_id
+    FROM teams t0
+    WHERE t0.id = sqlc.arg('root_team_id')
+      AND t0.tenant_id = sqlc.arg('tenant_id')
+      AND t0.deleted_at IS NULL
+    UNION ALL
+    SELECT t.id, t.parent_team_id
+    FROM teams t
+    JOIN descendants d ON t.parent_team_id = d.id
+    WHERE t.tenant_id = sqlc.arg('tenant_id')
+      AND t.deleted_at IS NULL
+)
+SELECT d.id FROM descendants d ORDER BY d.id ASC;

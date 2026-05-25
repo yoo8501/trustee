@@ -38,6 +38,17 @@ type Querier interface {
 	IncrementUserTokenVersion(ctx context.Context, arg IncrementUserTokenVersionParams) (int32, error)
 	ListActiveLeaveTypes(ctx context.Context, tenantID int64) ([]LeaveType, error)
 	ListActiveUsersForAccrual(ctx context.Context, tenantID int64) ([]User, error)
+	// scope=team / dept 용. user_id IN (subquery: users WHERE team_id = ANY).
+	// teams 가 빈 배열이면 결과도 빈 결과 (PostgreSQL ANY 자연스러운 동작).
+	ListAttendanceByTeamsRange(ctx context.Context, arg ListAttendanceByTeamsRangeParams) ([]AttendanceRecord, error)
+	// scope=all 용. HR / super_admin only — 라우터 미들웨어가 1차 차단.
+	ListAttendanceByTenantRange(ctx context.Context, arg ListAttendanceByTenantRangeParams) ([]AttendanceRecord, error)
+	// Sprint 5: 통계 — Scoped Querier 가 호출하는 attendance / users 조회.
+	//
+	// 본 파일은 lazy compute 의 base data 만 fetch 한다 (집계는 Go service 가 수행).
+	// scope 분기는 Go layer 에서 호출 메서드를 분기하는 방식 — SQL 자체를 동적 build 하지 않는다.
+	// scope=me 용. (user_id, work_date) 범위.
+	ListAttendanceByUserRange(ctx context.Context, arg ListAttendanceByUserRangeParams) ([]AttendanceRecord, error)
 	ListHolidays(ctx context.Context, tenantID int64) ([]Holiday, error)
 	ListHolidaysInRange(ctx context.Context, arg ListHolidaysInRangeParams) ([]Holiday, error)
 	ListLeaveBalanceAdjustments(ctx context.Context, arg ListLeaveBalanceAdjustmentsParams) ([]LeaveBalanceAdjustment, error)
@@ -46,8 +57,12 @@ type Querier interface {
 	ListLeaveTypes(ctx context.Context, arg ListLeaveTypesParams) ([]LeaveType, error)
 	// 자정 KST cron 이 사용. work_date = yesterday(KST) AND check_out_at IS NULL.
 	ListOpenAttendanceForDate(ctx context.Context, workDate pgtype.Date) ([]AttendanceRecord, error)
+	// Sprint 5: dept_head 산하 팀 전체 (자기 자신 포함) 펼치기. 재귀 CTE.
+	ListTeamDescendants(ctx context.Context, arg ListTeamDescendantsParams) ([]int64, error)
 	ListTeams(ctx context.Context, arg ListTeamsParams) ([]Team, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	// 팀 단위 멤버 펼치기. Service 가 통계 집계 시 work_start/end_time 을 한 번에 fetch.
+	ListUsersByTeams(ctx context.Context, arg ListUsersByTeamsParams) ([]User, error)
 	// 자정 cron 이 호출. check_out_at 은 NULL 유지, status 만 auto_closed 로 마킹.
 	MarkAttendanceAutoClosed(ctx context.Context, ids []int64) error
 	// 1회용 회전: used_at IS NULL 인 경우에만 마킹 성공. 이미 used 인 경우 0 rows.

@@ -95,7 +95,9 @@ func (holStore) ListHolidaysInRange(_ context.Context, _ dbq.ListHolidaysInRange
 
 type hierarchy struct{}
 
-func (hierarchy) DescendantsOf(teamID int64) []int64 { return []int64{teamID} }
+func (hierarchy) DescendantsOf(_ context.Context, _, teamID int64) ([]int64, error) {
+	return []int64{teamID}, nil
+}
 
 // ---- helpers ----
 
