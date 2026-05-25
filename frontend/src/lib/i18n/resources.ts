@@ -7,9 +7,12 @@ export const resources = {
       'theme.toggle.dark': '다크 모드로 전환',
       'nav.home': '홈',
       'nav.login': '로그인',
+      'nav.register': '회원가입',
       'nav.healthz': '서버 상태',
+      'nav.logout': '로그아웃',
       'route.home.title': '홈',
       'route.home.body': 'Sprint 1 부트스트랩. 도메인은 다음 스프린트부터.',
+      'route.home.welcome': '{{name}} 님, 환영합니다.',
       'route.login.title': '로그인',
       'route.login.body':
         '로그인 화면은 Sprint 2(인증)에서 구현됩니다.',
@@ -22,6 +25,25 @@ export const resources = {
       'healthz.loading': '확인 중…',
       'healthz.error': '서버 응답이 없어요',
       'healthz.retry': '다시 시도',
+
+      // ----- Sprint 2 인증 -----
+      'login.title': '로그인',
+      'login.email': '이메일',
+      'login.password': '비밀번호',
+      'login.submit': '로그인',
+      'login.toRegister': '계정이 없어요',
+      'login.success': '환영합니다, {{name}} 님',
+      'login.disabled.invalid': '입력값을 확인해 주세요',
+      'register.title': '회원가입',
+      'register.name': '이름',
+      'register.submit': '가입하기',
+      'register.toLogin': '이미 계정이 있어요',
+      'register.success': '가입 완료 — 로그인했어요',
+      'auth.logout': '로그아웃',
+      'auth.logout.success': '로그아웃되었어요',
+      'auth.expired': '로그인이 만료되었어요. 다시 로그인해 주세요.',
+
+      // ----- Error codes -----
       'error.INTERNAL_ERROR': '서버 오류가 발생했어요',
       'error.VALIDATION_FAILED': '입력값을 확인해 주세요',
       'error.INVALID_REQUEST': '잘못된 요청이에요',
@@ -32,7 +54,22 @@ export const resources = {
       'error.RATE_LIMITED': '요청이 너무 많아요. 잠시 후 다시 시도해 주세요',
       'error.EXTERNAL_SERVICE_ERROR': '외부 시스템에 일시적인 문제가 있어요',
       'error.INVALID_RESPONSE': '서버 응답 형식이 올바르지 않아요',
+      'error.TOKEN_EXPIRED': '로그인이 만료되었어요',
+      'error.INVALID_CREDENTIALS': '이메일 또는 비밀번호가 올바르지 않아요',
+      'error.EMAIL_DUPLICATE': '이미 가입된 이메일이에요',
+      'error.USER_TERMINATED':
+        '퇴사 처리된 계정이에요. 관리자에게 문의해 주세요',
+      'error.CANNOT_DEMOTE_SELF': '본인의 권한은 변경할 수 없어요',
       'error.unknown': '알 수 없는 오류가 발생했어요',
+
+      // ----- Field-level validation -----
+      'error.field.email.required': '이메일을 입력해 주세요',
+      'error.field.email.format': '올바른 이메일 형식이 아니에요',
+      'error.field.email.duplicate': '이미 가입된 이메일이에요',
+      'error.field.password.required': '비밀번호를 입력해 주세요',
+      'error.field.password.min': '비밀번호는 8자 이상이에요',
+      'error.field.password.strength': '영문, 숫자, 특수문자를 포함해 주세요',
+      'error.field.name.required': '이름을 입력해 주세요',
     },
   },
   en: {
@@ -43,10 +80,13 @@ export const resources = {
       'theme.toggle.dark': 'Switch to dark mode',
       'nav.home': 'Home',
       'nav.login': 'Sign in',
+      'nav.register': 'Sign up',
       'nav.healthz': 'Server status',
+      'nav.logout': 'Sign out',
       'route.home.title': 'Home',
       'route.home.body':
         'Sprint 1 bootstrap. Domain features arrive next sprint.',
+      'route.home.welcome': 'Welcome, {{name}}.',
       'route.login.title': 'Sign in',
       'route.login.body':
         'The sign-in screen ships in Sprint 2 (authentication).',
@@ -58,6 +98,25 @@ export const resources = {
       'healthz.loading': 'Checking…',
       'healthz.error': 'No response from server',
       'healthz.retry': 'Retry',
+
+      // ----- Sprint 2 auth -----
+      'login.title': 'Sign in',
+      'login.email': 'Email',
+      'login.password': 'Password',
+      'login.submit': 'Sign in',
+      'login.toRegister': "Don't have an account?",
+      'login.success': 'Welcome, {{name}}',
+      'login.disabled.invalid': 'Please correct the highlighted fields',
+      'register.title': 'Sign up',
+      'register.name': 'Name',
+      'register.submit': 'Create account',
+      'register.toLogin': 'Already have an account?',
+      'register.success': 'Account created — you are signed in',
+      'auth.logout': 'Sign out',
+      'auth.logout.success': 'You are signed out',
+      'auth.expired': 'Your session expired. Please sign in again.',
+
+      // ----- Error codes -----
       'error.INTERNAL_ERROR': 'Server error occurred',
       'error.VALIDATION_FAILED': 'Please check your inputs',
       'error.INVALID_REQUEST': 'Invalid request',
@@ -68,7 +127,23 @@ export const resources = {
       'error.RATE_LIMITED': 'Too many requests. Please retry shortly',
       'error.EXTERNAL_SERVICE_ERROR': 'An upstream service is unavailable',
       'error.INVALID_RESPONSE': 'Malformed server response',
+      'error.TOKEN_EXPIRED': 'Your session expired',
+      'error.INVALID_CREDENTIALS': 'Email or password is incorrect',
+      'error.EMAIL_DUPLICATE': 'This email is already registered',
+      'error.USER_TERMINATED':
+        'This account has been terminated. Contact your administrator.',
+      'error.CANNOT_DEMOTE_SELF': 'You cannot change your own role',
       'error.unknown': 'Unknown error',
+
+      // ----- Field-level validation -----
+      'error.field.email.required': 'Email is required',
+      'error.field.email.format': 'Invalid email format',
+      'error.field.email.duplicate': 'This email is already registered',
+      'error.field.password.required': 'Password is required',
+      'error.field.password.min': 'Password must be at least 8 characters',
+      'error.field.password.strength':
+        'Include letters, numbers, and a symbol',
+      'error.field.name.required': 'Name is required',
     },
   },
 } as const;

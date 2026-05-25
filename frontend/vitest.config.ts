@@ -8,5 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: true,
+    // Playwright spec 파일은 vitest 에서 실행하지 않는다.
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
   },
 });

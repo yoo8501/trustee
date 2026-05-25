@@ -1,15 +1,30 @@
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router';
+import { LoginForm } from '../features/auth';
+
+interface LocationState {
+  from?: string;
+}
 
 export function LoginRoute() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const handleSuccess = (email: string) => {
+    enqueueSnackbar(t('login.success', { name: email }), {
+      variant: 'success',
+    });
+    const state = location.state as LocationState | undefined;
+    navigate(state?.from ?? '/', { replace: true });
+  };
+
   return (
-    <Stack spacing={2}>
-      <Typography variant="h1">{t('route.login.title')}</Typography>
-      <Typography variant="body1" color="text.secondary">
-        {t('route.login.body')}
-      </Typography>
-    </Stack>
+    <Container maxWidth="xs" sx={{ py: 4 }}>
+      <LoginForm onSuccess={handleSuccess} />
+    </Container>
   );
 }
