@@ -1,0 +1,119 @@
+# DocFlow 운영 docker-compose.
+#
+# 구성:
+#   - postgres : PostgreSQL 16 (LUKS volume mount 권장 — §ops-checklist §5)
+#   - api      : Go backend (multi-stage build, distroless 가능)
+#   - frontend : React SPA (정적 빌드 → caddy 의 file_server 가 serve)
+#   - caddy    : reverse proxy + HTTPS 자동 + access log
+#
+# secret 운영:
+#   - .env 파일 (gitignore) 에 DOCFLOW_JWT_SECRET, POSTGRES_PASSWORD 정의.
+#   - 또는 docker secrets / 외부 vault (P2 이후).
+#
+# 사용:
+#   cp .env.example .env  # 시크릿 값 채움
+#   docker compose -f infra/docker-compose.prod.yml up -d
+#
+# 마이그레이션 실행:
+#   docker compose -f infra/docker-compose.prod.yml exec api \
+#     /usr/local/bin/migrate -path /app/migrations -database $DATABASE_URL up
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: docflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: docflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: docflow
+      TZ: Asia/Seoul
+      PGTZ: Asia/Seoul
+    volumes:
+      # 운영: LUKS 또는 cloud encrypted volume 위에 bind mount 권장.
+      - docflow-pg-data:/var/lib/postgresql/data
+      # 백업 출력 경로 (host cron 이 pg_dump 결과 수집).
+      - /backup:/backup
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docflow -d docflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - docflow-net
+    # 운영에선 publish port 없음 (api 만 internal 로 접속).
+
+  api:
+    image: docflow/api:${DOCFLOW_VERSION:-latest}
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: docflow-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DOCFLOW_ADDR: ":8080"
+      DOCFLOW_ENV: "prod"
+      DOCFLOW_TENANT_ID: "1"
+      DATABASE_URL: "postgres://docflow:${POSTGRES_PASSWORD}@postgres:5432/docflow?sslmode=disable"
+      JWT_SECRET: ${DOCFLOW_JWT_SECRET}
+      TZ: "Asia/Seoul"
+    networks:
+      - docflow-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: docflow-caddy
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy-prod.example.Caddyfile:/etc/caddy/Caddyfile:ro
+      # SPA 정적 파일 (frontend bun run build 결과물 → dist/).
+      - ../frontend/dist:/srv/docflow:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - /var/log/caddy:/var/log/caddy
+    networks:
+      - docflow-net
+    environment:
+      TZ: "Asia/Seoul"
+
+  # cron job (별도 컨테이너 — connection pool 분리, 메모리 격리).
+  cron:
+    image: docflow/api:${DOCFLOW_VERSION:-latest}
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: docflow-cron
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["/app/cron"]  # backend/cmd/cron/main.go binary 라고 가정
+    environment:
+      DOCFLOW_ENV: "prod"
+      DOCFLOW_TENANT_ID: "1"
+      DATABASE_URL: "postgres://docflow:${POSTGRES_PASSWORD}@postgres:5432/docflow?sslmode=disable"
+      TZ: "Asia/Seoul"
+    networks:
+      - docflow-net
+
+volumes:
+  docflow-pg-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  docflow-net:
+    driver: bridge
