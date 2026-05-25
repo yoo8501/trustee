@@ -37,6 +37,28 @@ type AttendanceAutoCloseStore interface {
 
 var _ AttendanceAutoCloseStore = (*dbq.Queries)(nil)
 
+// AutoCloseNotification — Notifier.Notify 의 payload (notification.NewNotification 미러).
+//
+// 본 패키지가 hr/notification 패키지를 직접 import 하지 않도록 (cycle 방지 + test fake
+// 주입 용이) 동일 shape 만 다시 정의한다. server.go 가 어댑터로 연결.
+type AutoCloseNotification struct {
+	Type       string
+	Title      string
+	Body       string
+	RelatedURL string
+}
+
+// Notifier — autoclose 가 의존하는 알림 트리거 인터페이스.
+// notification.Notifier 와 동일한 시그니처.
+type Notifier interface {
+	Notify(ctx context.Context, tenantID, userID int64, n AutoCloseNotification) error
+}
+
+// noopNotifier — Notifier 주입 안 됐을 때 사용. nil 반환.
+type noopNotifier struct{}
+
+func (noopNotifier) Notify(_ context.Context, _, _ int64, _ AutoCloseNotification) error { return nil }
+
 // AutoCloseJob — 자정 KST 출퇴근 자동 마감.
 //
 // 매일 KST 00:00 실행:
@@ -44,14 +66,15 @@ var _ AttendanceAutoCloseStore = (*dbq.Queries)(nil)
 //	어제 (KST) work_date 중 check_out_at IS NULL → status=auto_closed.
 //	check_out_at 은 NULL 그대로 두어 "퇴근 누락" 임을 표현.
 //
-// 알림 (인앱 노티) 은 Sprint 8 의 Notification 도메인 도입 시 정식화한다.
-// 본 sprint 는 마킹된 user 별로 구조화 로그 한 줄을 남기는 것으로 stub.
+// Sprint 8: 마킹된 row 마다 본인에게 인앱 알림 (type=attendance_auto_closed) 발송.
+// 알림 실패는 cron 작업 자체를 깨지 않음 — best-effort.
 type AutoCloseJob struct {
 	store    AttendanceAutoCloseStore
 	logger   *slog.Logger
 	tenantID int64
 	dryRun   bool
 	clock    func() time.Time
+	notifier Notifier
 }
 
 // AutoCloseJobConfig — 의존성 묶음.
@@ -62,6 +85,8 @@ type AutoCloseJobConfig struct {
 	DryRun   bool
 	// Clock 이 nil 이면 KST 현재 시각 사용.
 	Clock func() time.Time
+	// Notifier 가 nil 이면 noop (알림 발송 안 함).
+	Notifier Notifier
 }
 
 // NewAutoCloseJob — config 검증 후 job 생성.
@@ -77,12 +102,17 @@ func NewAutoCloseJob(cfg AutoCloseJobConfig) *AutoCloseJob {
 	if clock == nil {
 		clock = func() time.Time { return time.Now().In(leave.KSTLocation()) }
 	}
+	notifier := cfg.Notifier
+	if notifier == nil {
+		notifier = noopNotifier{}
+	}
 	return &AutoCloseJob{
 		store:    cfg.Store,
 		logger:   logger,
 		tenantID: cfg.TenantID,
 		dryRun:   cfg.DryRun,
 		clock:    clock,
+		notifier: notifier,
 	}
 }
 
@@ -137,14 +167,26 @@ func (j *AutoCloseJob) Run(ctx context.Context) (AutoCloseResult, error) {
 	}
 	res.Marked = len(ids)
 
-	// TODO(sprint-8): Notification 도메인 도입 후 row 별로 인앱 알림 INSERT.
-	// 본 sprint 는 사용자 단위 로그만 남긴다 (운영자 가시성 확보).
+	// Sprint 8: 마킹된 row 마다 본인에게 인앱 알림 (best-effort — 실패해도 cron 통과).
+	workDateStr := yesterday.Format("2006-01-02")
 	for _, r := range rows {
 		j.logger.Info("autoclose: marked",
 			slog.Int64("attendance_id", r.ID),
 			slog.Int64("user_id", r.UserID),
-			slog.String("work_date", yesterday.Format("2006-01-02")),
+			slog.String("work_date", workDateStr),
 		)
+		if err := j.notifier.Notify(ctx, r.TenantID, r.UserID, AutoCloseNotification{
+			Type:       "attendance_auto_closed",
+			Title:      "출퇴근 자동 마감 알림",
+			Body:       workDateStr + " 퇴근 체크가 없어 자동 마감되었습니다. 정정이 필요하면 HR에 문의해 주세요.",
+			RelatedURL: "/attendance",
+		}); err != nil {
+			j.logger.Warn("autoclose: notify failed",
+				slog.Int64("attendance_id", r.ID),
+				slog.Int64("user_id", r.UserID),
+				slog.String("err", err.Error()),
+			)
+		}
 	}
 
 	j.logger.Info("autoclose: done",

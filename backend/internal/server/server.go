@@ -19,11 +19,13 @@ import (
 	"github.com/sjseo/docflow/backend/internal/hr/attendance"
 	"github.com/sjseo/docflow/backend/internal/hr/attendance/stats"
 	"github.com/sjseo/docflow/backend/internal/hr/audit"
+	"github.com/sjseo/docflow/backend/internal/hr/calendar"
 	"github.com/sjseo/docflow/backend/internal/hr/delegation"
 	"github.com/sjseo/docflow/backend/internal/hr/expensereport"
 	"github.com/sjseo/docflow/backend/internal/hr/holiday"
 	"github.com/sjseo/docflow/backend/internal/hr/leave"
 	"github.com/sjseo/docflow/backend/internal/hr/leaverequest"
+	"github.com/sjseo/docflow/backend/internal/hr/notification"
 	"github.com/sjseo/docflow/backend/internal/hr/scope"
 	"github.com/sjseo/docflow/backend/internal/httpx/apiresult"
 	"github.com/sjseo/docflow/backend/internal/httpx/errorcode"
@@ -73,6 +75,8 @@ type DomainStore interface {
 	delegation.Store
 	expensereport.Store
 	expensereport.TxStore
+	notification.Store
+	calendar.Store
 }
 
 var _ DomainStore = (*dbq.Queries)(nil)
@@ -290,11 +294,25 @@ func registerDomainRoutes(eng *gin.Engine, cfg Config) {
 	api.POST("/hr/delegations/me/list", authMW.Required(), delegH.MyList)
 	api.POST("/hr/delegations/delete", authMW.Required(), delegH.Delete)
 
+	// ---- HR: notifications (Sprint 8, 인앱 알림) ----
+	notifSvc := notification.NewService(cfg.Store)
+	notifH := notification.NewHandler(notifSvc)
+	api.POST("/hr/notifications/list", authMW.Required(), notifH.List)
+	api.POST("/hr/notifications/:id/read", authMW.Required(), notifH.Read)
+	api.POST("/hr/notifications/read-all", authMW.Required(), notifH.ReadAll)
+
+	// ---- HR: calendar (Sprint 8, 공유 캘린더 view) ----
+	calSvc := calendar.NewService(cfg.Store)
+	calH := calendar.NewHandler(calSvc)
+	api.POST("/hr/calendar/list", authMW.Required(), calH.List)
+
 	// ---- HR: leave-requests (Sprint 6, 휴가 신청 단일 결재) ----
 	// Approve 가 트랜잭션을 필요로 하므로 Pool 이 있을 때만 등록.
 	if cfg.Pool != nil {
 		txMgr := leaverequest.NewPgxTxManager(cfg.Pool)
 		leaveReqSvc := leaverequest.NewService(cfg.Store, txMgr, delegResolver)
+		// Sprint 8: 결재 상신/승인/반려 시점에 인앱 알림 발송.
+		leaveReqSvc.SetNotifier(leaveRequestNotifierAdapter{svc: notifSvc})
 		leaveReqH := leaverequest.NewHandler(leaveReqSvc)
 		leaveReq := api.Group("/hr/leave-requests", authMW.Required())
 		leaveReq.POST("", leaveReqH.Create)
@@ -320,6 +338,8 @@ func registerDomainRoutes(eng *gin.Engine, cfg Config) {
 	if cfg.Pool != nil {
 		expTxMgr := expensereport.NewPgxTxManager(cfg.Pool)
 		expSvc := expensereport.NewService(cfg.Store, expTxMgr, delegResolver)
+		// Sprint 8: 지출결의 상신/승인/반려 시점에 인앱 알림 발송.
+		expSvc.SetNotifier(expenseReportNotifierAdapter{svc: notifSvc})
 		uploadDir := os.Getenv("UPLOAD_DIR")
 		if uploadDir == "" {
 			uploadDir = "./uploads"
@@ -378,3 +398,34 @@ func statsTeamContext(store interface {
 
 // gincontext — store 인터페이스 매개변수가 context.Context 인 것을 만족시키기 위한 alias.
 type gincontext = context.Context
+
+// ---------- Sprint 8 Notifier 어댑터 ----------
+//
+// leaverequest / expensereport 패키지는 (cycle 회피 + test fake 주입 용이) notification
+// 패키지를 직접 import 하지 않고 각자 동일 shape 의 [Notifier] 인터페이스를 정의한다.
+// 본 어댑터는 server bootstrap 시점에 *notification.Service 를 각 패키지의 Notifier 로
+// 변환해서 주입한다.
+//
+// cron 패키지의 autoclose 알림은 별도 binary (cmd/cron) 에서 직접 wiring 한다.
+
+type leaveRequestNotifierAdapter struct{ svc *notification.Service }
+
+func (a leaveRequestNotifierAdapter) Notify(ctx context.Context, tenantID, userID int64, n leaverequest.NewNotification) error {
+	return a.svc.Notify(ctx, tenantID, userID, notification.NewNotification{
+		Type:       n.Type,
+		Title:      n.Title,
+		Body:       n.Body,
+		RelatedURL: n.RelatedURL,
+	})
+}
+
+type expenseReportNotifierAdapter struct{ svc *notification.Service }
+
+func (a expenseReportNotifierAdapter) Notify(ctx context.Context, tenantID, userID int64, n expensereport.NewNotification) error {
+	return a.svc.Notify(ctx, tenantID, userID, notification.NewNotification{
+		Type:       n.Type,
+		Title:      n.Title,
+		Body:       n.Body,
+		RelatedURL: n.RelatedURL,
+	})
+}

@@ -27,7 +27,24 @@ import (
 	"github.com/sjseo/docflow/backend/internal/config"
 	dbq "github.com/sjseo/docflow/backend/internal/db/sqlc"
 	"github.com/sjseo/docflow/backend/internal/hr/cron"
+	"github.com/sjseo/docflow/backend/internal/hr/notification"
 )
+
+// autoCloseNotifierAdapter — notification.Service 를 cron.Notifier 로 어댑팅.
+//
+// cron 패키지는 cycle 회피를 위해 notification 패키지를 import 하지 않고 자체
+// [cron.Notifier] 인터페이스를 정의한다. 본 어댑터가 main 부트스트랩 시점에
+// 두 타입을 연결.
+type autoCloseNotifierAdapter struct{ svc *notification.Service }
+
+func (a autoCloseNotifierAdapter) Notify(ctx context.Context, tenantID, userID int64, n cron.AutoCloseNotification) error {
+	return a.svc.Notify(ctx, tenantID, userID, notification.NewNotification{
+		Type:       n.Type,
+		Title:      n.Title,
+		Body:       n.Body,
+		RelatedURL: n.RelatedURL,
+	})
+}
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -86,8 +103,11 @@ func main() {
 		})
 	}
 	if *job == "auto-close" || *job == "all" {
+		// Sprint 8: notification service 주입 — 마감된 row 마다 본인에게 인앱 알림.
+		notifSvc := notification.NewService(queries)
 		autoCloseJob := cron.NewAutoCloseJob(cron.AutoCloseJobConfig{
 			Store: queries, Logger: logger, TenantID: cfg.TenantID, DryRun: *dryRun,
+			Notifier: autoCloseNotifierAdapter{svc: notifSvc},
 		})
 		jobs = append(jobs, registeredJob{
 			name:    "auto-close",

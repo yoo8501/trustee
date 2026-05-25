@@ -3,6 +3,7 @@ package expensereport
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
@@ -54,20 +55,47 @@ func (noopResolver) IsDelegate(_ context.Context, originalApprover, actorID int6
 	return originalApprover == actorID
 }
 
+// NewNotification — notification.NewNotification 미러 (cycle 방지).
+type NewNotification struct {
+	Type       string
+	Title      string
+	Body       string
+	RelatedURL string
+}
+
+// Notifier — expensereport 가 의존하는 알림 트리거 (Sprint 8).
+type Notifier interface {
+	Notify(ctx context.Context, tenantID, userID int64, n NewNotification) error
+}
+
+type noopNotifier struct{}
+
+func (noopNotifier) Notify(_ context.Context, _, _ int64, _ NewNotification) error { return nil }
+
 // Service — 지출결의서 도메인 service.
 type Service struct {
 	store    Store
 	tx       TxManager
 	resolver ApproverResolver
+	notifier Notifier
 	clock    func() time.Time
 }
 
 // NewService — 의존성 주입. resolver==nil 이면 noopResolver (위임 미적용).
+// notifier 는 SetNotifier 로 별도 주입 (Sprint 8 도입; 기존 호출자 호환성 유지).
 func NewService(store Store, tx TxManager, resolver ApproverResolver) *Service {
 	if resolver == nil {
 		resolver = noopResolver{}
 	}
-	return &Service{store: store, tx: tx, resolver: resolver}
+	return &Service{store: store, tx: tx, resolver: resolver, notifier: noopNotifier{}}
+}
+
+// SetNotifier — Sprint 8 notification 트리거용. server.go 가 부트 시점에 주입.
+func (s *Service) SetNotifier(n Notifier) {
+	if n == nil {
+		return
+	}
+	s.notifier = n
 }
 
 // NewServiceWithClock — 테스트 전용.
@@ -205,6 +233,15 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (View, error) {
 	if err != nil {
 		return View{}, err
 	}
+
+	// Sprint 8: 결재자에게 알림 (best-effort).
+	_ = s.notifier.Notify(ctx, in.TenantID, approverID, NewNotification{
+		Type:       "expense_report_submitted",
+		Title:      "지출결의 결재 요청",
+		Body:       requester.Name + " 님의 지출결의가 도착했습니다.",
+		RelatedURL: "/approvals/expense-reports/" + strconv.FormatInt(created.ID, 10),
+	})
+
 	return toView(created), nil
 }
 
@@ -387,6 +424,7 @@ func (s *Service) PendingList(ctx context.Context, approverID, tenantID int64, i
 //  4. UpdateExpenseReportDecision — status='approved', approver_id=actorID, decided_at=now, comment.
 func (s *Service) Approve(ctx context.Context, id, actorID, tenantID int64, comment string) (View, error) {
 	var out View
+	var requesterID int64
 	err := s.tx.WithTx(ctx, func(tx TxStore) error {
 		r, err := tx.GetExpenseReportForUpdate(ctx, dbq.GetExpenseReportForUpdateParams{
 			ID: id, TenantID: tenantID,
@@ -426,11 +464,23 @@ func (s *Service) Approve(ctx context.Context, id, actorID, tenantID int64, comm
 			return err
 		}
 		out = toView(updated)
+		requesterID = updated.RequesterID
 		return nil
 	})
 	if err != nil {
 		return View{}, err
 	}
+
+	// Sprint 8: 신청자에게 알림.
+	if requesterID != 0 {
+		_ = s.notifier.Notify(ctx, tenantID, requesterID, NewNotification{
+			Type:       "expense_report_approved",
+			Title:      "지출결의가 승인되었습니다",
+			Body:       "신청하신 지출결의가 승인되었습니다.",
+			RelatedURL: "/my/expense-reports/" + strconv.FormatInt(id, 10),
+		})
+	}
+
 	return out, nil
 }
 
@@ -444,6 +494,7 @@ func (s *Service) Reject(ctx context.Context, id, actorID, tenantID int64, comme
 	}
 
 	var out View
+	var requesterID int64
 	err := s.tx.WithTx(ctx, func(tx TxStore) error {
 		r, err := tx.GetExpenseReportForUpdate(ctx, dbq.GetExpenseReportForUpdateParams{
 			ID: id, TenantID: tenantID,
@@ -478,11 +529,23 @@ func (s *Service) Reject(ctx context.Context, id, actorID, tenantID int64, comme
 			return err
 		}
 		out = toView(updated)
+		requesterID = updated.RequesterID
 		return nil
 	})
 	if err != nil {
 		return View{}, err
 	}
+
+	// Sprint 8: 신청자에게 알림.
+	if requesterID != 0 {
+		_ = s.notifier.Notify(ctx, tenantID, requesterID, NewNotification{
+			Type:       "expense_report_rejected",
+			Title:      "지출결의가 반려되었습니다",
+			Body:       "신청하신 지출결의가 반려되었습니다. 사유: " + trimmed,
+			RelatedURL: "/my/expense-reports/" + strconv.FormatInt(id, 10),
+		})
+	}
+
 	return out, nil
 }
 

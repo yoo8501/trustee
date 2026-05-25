@@ -438,6 +438,75 @@ func (f *fakeStore) ListActiveDelegationsByDelegator(ctx context.Context, arg db
 	return nil, nil
 }
 
+// ---- expensereport stubs (Sprint 7) — 통합 테스트는 expense API 를 호출하지 않으므로 noop. ----
+
+func (f *fakeStore) CancelExpenseReport(_ context.Context, _ dbq.CancelExpenseReportParams) (dbq.ExpenseReport, error) {
+	return dbq.ExpenseReport{}, pgx.ErrNoRows
+}
+func (f *fakeStore) CountExpenseReportsByRequester(_ context.Context, _ dbq.CountExpenseReportsByRequesterParams) (int64, error) {
+	return 0, nil
+}
+func (f *fakeStore) CountPendingExpenseReportsByApprover(_ context.Context, _ dbq.CountPendingExpenseReportsByApproverParams) (int64, error) {
+	return 0, nil
+}
+func (f *fakeStore) CreateExpenseReport(_ context.Context, _ dbq.CreateExpenseReportParams) (dbq.ExpenseReport, error) {
+	return dbq.ExpenseReport{}, nil
+}
+func (f *fakeStore) GetExpenseReportByID(_ context.Context, _ dbq.GetExpenseReportByIDParams) (dbq.ExpenseReport, error) {
+	return dbq.ExpenseReport{}, pgx.ErrNoRows
+}
+func (f *fakeStore) GetExpenseReportForUpdate(_ context.Context, _ dbq.GetExpenseReportForUpdateParams) (dbq.ExpenseReport, error) {
+	return dbq.ExpenseReport{}, pgx.ErrNoRows
+}
+func (f *fakeStore) ListExpenseReportsByRequester(_ context.Context, _ dbq.ListExpenseReportsByRequesterParams) ([]dbq.ExpenseReport, error) {
+	return nil, nil
+}
+func (f *fakeStore) ListPendingExpenseReportsByApprover(_ context.Context, _ dbq.ListPendingExpenseReportsByApproverParams) ([]dbq.ExpenseReport, error) {
+	return nil, nil
+}
+func (f *fakeStore) UpdateExpenseReportAttachment(_ context.Context, _ dbq.UpdateExpenseReportAttachmentParams) (dbq.ExpenseReport, error) {
+	return dbq.ExpenseReport{}, nil
+}
+func (f *fakeStore) UpdateExpenseReportDecision(_ context.Context, _ dbq.UpdateExpenseReportDecisionParams) (dbq.ExpenseReport, error) {
+	return dbq.ExpenseReport{}, nil
+}
+
+// ---- notification stubs (Sprint 8). ----
+
+func (f *fakeStore) CreateNotification(_ context.Context, _ dbq.CreateNotificationParams) (dbq.Notification, error) {
+	return dbq.Notification{}, nil
+}
+func (f *fakeStore) GetNotificationByID(_ context.Context, _ dbq.GetNotificationByIDParams) (dbq.Notification, error) {
+	return dbq.Notification{}, pgx.ErrNoRows
+}
+func (f *fakeStore) ListNotificationsForUser(_ context.Context, _ dbq.ListNotificationsForUserParams) ([]dbq.Notification, error) {
+	return nil, nil
+}
+func (f *fakeStore) CountNotificationsForUser(_ context.Context, _ dbq.CountNotificationsForUserParams) (int64, error) {
+	return 0, nil
+}
+func (f *fakeStore) ListUnreadNotificationsForUser(_ context.Context, _ dbq.ListUnreadNotificationsForUserParams) ([]dbq.Notification, error) {
+	return nil, nil
+}
+func (f *fakeStore) CountUnreadNotificationsForUser(_ context.Context, _ dbq.CountUnreadNotificationsForUserParams) (int64, error) {
+	return 0, nil
+}
+func (f *fakeStore) MarkNotificationRead(_ context.Context, _ dbq.MarkNotificationReadParams) (dbq.Notification, error) {
+	return dbq.Notification{}, pgx.ErrNoRows
+}
+func (f *fakeStore) MarkAllNotificationsRead(_ context.Context, _ dbq.MarkAllNotificationsReadParams) (int64, error) {
+	return 0, nil
+}
+
+// ---- calendar stubs (Sprint 8). ----
+
+func (f *fakeStore) ListCalendarLeaves(_ context.Context, _ dbq.ListCalendarLeavesParams) ([]dbq.ListCalendarLeavesRow, error) {
+	return nil, nil
+}
+func (f *fakeStore) ListCalendarAttendances(_ context.Context, _ dbq.ListCalendarAttendancesParams) ([]dbq.ListCalendarAttendancesRow, error) {
+	return nil, nil
+}
+
 var _ server.DomainStore = (*fakeStore)(nil)
 
 // ---- 통합 테스트 ----
