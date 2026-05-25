@@ -35,4 +35,7 @@ const (
 	EmailDuplicate = "EMAIL_DUPLICATE"
 	// InvalidCredentials — 로그인 자격 증명 불일치 (400). UNAUTHENTICATED 와 구분 — 로그인 폼에 직접 노출 가능한 코드.
 	InvalidCredentials = "INVALID_CREDENTIALS"
+	// InvalidAccrualPolicy — leave_type.accrual_policy JSON 스키마 검증 실패 (400).
+	// VALIDATION_FAILED 보다 구체적 — FE 가 별도 안내 문구 표시 가능.
+	InvalidAccrualPolicy = "INVALID_ACCRUAL_POLICY"
 )

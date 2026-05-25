@@ -26,6 +26,7 @@ Backend는 모든 실패 응답의 `details.errorCode`에 다음 enum 중 하나
 | `EMAIL_DUPLICATE` | 400 | 회원가입 시 이미 존재하는 이메일 | form field error |
 | `USER_TERMINATED` | 400 | 퇴사 처리된(`status=terminated`) 사용자 로그인 시도 | 로그인 폼 inline 에러 |
 | `CANNOT_DEMOTE_SELF` | 400 | 본인 role 강등 시도 (super_admin 본인이 본인 role 을 낮추려 함) | toast / form error |
+| `INVALID_ACCRUAL_POLICY` | 400 | 휴가 종류 적립 정책 JSON 스키마 검증 실패 (type 누락 / unknown type / 음수 / cap < base 등) | form field error |
 
 새 도메인 추가 시 기존 enum 재사용 우선. 신규 코드는 본 표 + Backend/Frontend 동시 반영.
 
