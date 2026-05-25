@@ -8,6 +8,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,6 +20,7 @@ import (
 	"github.com/sjseo/docflow/backend/internal/hr/attendance/stats"
 	"github.com/sjseo/docflow/backend/internal/hr/audit"
 	"github.com/sjseo/docflow/backend/internal/hr/delegation"
+	"github.com/sjseo/docflow/backend/internal/hr/expensereport"
 	"github.com/sjseo/docflow/backend/internal/hr/holiday"
 	"github.com/sjseo/docflow/backend/internal/hr/leave"
 	"github.com/sjseo/docflow/backend/internal/hr/leaverequest"
@@ -69,6 +71,8 @@ type DomainStore interface {
 	leaverequest.Store
 	leaverequest.TxStore
 	delegation.Store
+	expensereport.Store
+	expensereport.TxStore
 }
 
 var _ DomainStore = (*dbq.Queries)(nil)
@@ -309,6 +313,40 @@ func registerDomainRoutes(eng *gin.Engine, cfg Config) {
 			leaveReqH.Reject,
 		)
 		leaveReq.POST("/:id/cancel", leaveReqH.Cancel)
+	}
+
+	// ---- HR: expense-reports (Sprint 7, 지출결의서 단일 결재 + 첨부) ----
+	// Approve/Reject 가 트랜잭션을 요구하므로 Pool 이 있을 때만 등록.
+	if cfg.Pool != nil {
+		expTxMgr := expensereport.NewPgxTxManager(cfg.Pool)
+		expSvc := expensereport.NewService(cfg.Store, expTxMgr, delegResolver)
+		uploadDir := os.Getenv("UPLOAD_DIR")
+		if uploadDir == "" {
+			uploadDir = "./uploads"
+		}
+		expStorage := expensereport.NewLocalAttachmentStorage(uploadDir)
+		expAttach := expensereport.NewAttachmentManager(expStorage)
+		expH := expensereport.NewHandler(expSvc, expAttach)
+
+		expGrp := api.Group("/hr/expense-reports", authMW.Required())
+		expGrp.POST("", expH.Create)
+		expGrp.GET("/:id", expH.Get)
+		expGrp.POST("/me/list", expH.MyList)
+		expGrp.POST("/pending/list",
+			authMW.RequireAtLeast(permission.RoleTeamLead),
+			expH.PendingList,
+		)
+		expGrp.POST("/:id/approve",
+			authMW.RequireAtLeast(permission.RoleTeamLead),
+			expH.Approve,
+		)
+		expGrp.POST("/:id/reject",
+			authMW.RequireAtLeast(permission.RoleTeamLead),
+			expH.Reject,
+		)
+		expGrp.POST("/:id/cancel", expH.Cancel)
+		expGrp.POST("/:id/attachment", expH.Upload)
+		expGrp.GET("/:id/attachment", expH.Download)
 	}
 }
 
