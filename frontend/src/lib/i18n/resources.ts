@@ -233,9 +233,103 @@ export const resources = {
       'common.edit': '편집',
       'common.search': '검색',
       'common.close': '닫기',
+      'common.undo': '되돌리기',
+      'common.approve': '승인',
+      'common.reject': '반려',
+      'common.error': '오류가 발생했어요',
+      'common.submit': '제출',
 
       'error.CANNOT_TERMINATE_SELF': '본인을 퇴사 처리할 수 없어요',
       'error.INVALID_ACCRUAL_POLICY': '발생 정책이 올바르지 않아요',
+
+      // ----- Sprint 6 휴가 신청 -----
+      'nav.leave': '휴가',
+      'nav.leave.new': '휴가 신청',
+      'nav.leave.my': '내 휴가',
+      'nav.leave.approvals': '결재함',
+      'leave.create.title': '휴가 신청',
+      'leave.create.subtitle':
+        '신청 후 직속 결재자에게 즉시 알림이 갑니다.',
+      'leave.create.type': '휴가 종류',
+      'leave.create.startAt': '시작',
+      'leave.create.endAt': '종료',
+      'leave.create.hours': '시간',
+      'leave.create.hoursHint': '1일 = 8시간',
+      'leave.create.reason': '사유 (선택)',
+      'leave.create.reason.placeholder': '예: 가족 행사',
+      'leave.create.submit': '신청하기',
+      'leave.create.cancel': '취소',
+      'leave.create.success':
+        '휴가 신청됨 — {{approver}} 님에게 알림 전송',
+      'leave.create.successWithoutApprover':
+        '휴가 신청됨 — 결재자 지정 후 알림이 전송됩니다',
+      'leave.create.insufficient':
+        '{{leaveTypeName}} 잔여 {{hours}}시간 부족',
+      'leave.create.duplicate':
+        '같은 날짜에 이미 신청한 휴가가 있어요',
+      'leave.create.approverHint':
+        '{{name}} 님에게 결재 요청이 전송됩니다',
+      'leave.create.approverUnknown':
+        '결재자가 자동 배정됩니다 (직속 팀장)',
+      'leave.create.totalHours': '총 {{hours}}시간',
+      'leave.create.shortcut': 'Cmd/Ctrl + Enter 로 빠른 제출',
+      'leave.create.draftRestored': '이전 입력값을 복구했어요',
+
+      'leave.status.pending': '결재 대기',
+      'leave.status.approved': '승인',
+      'leave.status.rejected': '반려',
+      'leave.status.cancelled': '취소',
+
+      'leave.my.title': '내 휴가',
+      'leave.my.subtitle': '신청한 휴가와 진행 상태를 확인하세요.',
+      'leave.my.empty': '신청한 휴가가 없어요',
+      'leave.my.newButton': '+ 휴가 신청',
+      'leave.my.loadError': '목록을 불러오지 못했어요',
+
+      'leave.cancel.button': '취소',
+      'leave.cancel.undoMessage':
+        '휴가 신청 취소 — 5초 안 되돌리기 가능',
+      'leave.cancel.success': '휴가 신청을 취소했어요',
+      'leave.cancel.error': '취소에 실패했어요',
+
+      'leave.approvals.title': '결재 대기함',
+      'leave.approvals.subtitle':
+        '결재 대기 중인 휴가 신청을 처리하세요.',
+      'leave.approvals.empty': '대기 중인 결재가 없어요',
+      'leave.approvals.col.requester': '신청자',
+      'leave.approvals.col.type': '종류',
+      'leave.approvals.col.period': '기간',
+      'leave.approvals.col.hours': '시간',
+      'leave.approvals.col.reason': '사유',
+      'leave.approvals.col.actions': '액션',
+      'leave.approvals.approve.success': '승인했어요',
+      'leave.approvals.reject.success': '반려했어요',
+      'leave.approvals.reject.dialog.title': '반려 사유 입력',
+      'leave.approvals.reject.dialog.reason': '반려 사유',
+      'leave.approvals.reject.dialog.submit': '반려',
+      'leave.approvals.reject.reasonRequired':
+        '반려 사유를 입력해 주세요',
+      'leave.approvals.loadError': '목록을 불러오지 못했어요',
+
+      'leave.balance.title': '내 잔여',
+      'leave.balance.remaining': '{{hours}}시간',
+      'leave.balance.empty': '등록된 잔여가 없어요',
+      'leave.balance.used':
+        '{{used}}시간 사용 / {{granted}}시간 부여',
+
+      'error.INSUFFICIENT_LEAVE_BALANCE': '연차 잔여가 부족해요',
+      'error.LEAVE_BALANCE_INSUFFICIENT': '연차 잔여가 부족해요',
+      'error.DUPLICATE_LEAVE_DATE':
+        '같은 날짜에 이미 신청한 휴가가 있어요',
+      'error.INVALID_DATE_RANGE':
+        '종료 날짜가 시작 날짜보다 빨라요',
+      'error.APPROVAL_INVALID_STATE': '이미 처리된 결재예요',
+      'error.field.endAt.beforeStart':
+        '종료 날짜는 시작 날짜와 같거나 이후여야 해요',
+      'error.field.startAt.invalid': '시작 날짜 형식이 올바르지 않아요',
+      'error.field.endAt.invalid': '종료 날짜 형식이 올바르지 않아요',
+      'error.field.hours.required': '시간을 입력해 주세요',
+      'error.field.leaveTypeId.required': '휴가 종류를 선택해 주세요',
     },
   },
   en: {
@@ -474,9 +568,100 @@ export const resources = {
       'common.edit': 'Edit',
       'common.search': 'Search',
       'common.close': 'Close',
+      'common.undo': 'Undo',
+      'common.approve': 'Approve',
+      'common.reject': 'Reject',
+      'common.error': 'Something went wrong',
+      'common.submit': 'Submit',
 
       'error.CANNOT_TERMINATE_SELF': 'You cannot terminate yourself',
       'error.INVALID_ACCRUAL_POLICY': 'Invalid accrual policy',
+
+      // ----- Sprint 6 leave request -----
+      'nav.leave': 'Leave',
+      'nav.leave.new': 'New leave',
+      'nav.leave.my': 'My leave',
+      'nav.leave.approvals': 'Approvals',
+      'leave.create.title': 'Request leave',
+      'leave.create.subtitle':
+        'Your direct approver will be notified immediately.',
+      'leave.create.type': 'Leave type',
+      'leave.create.startAt': 'Start',
+      'leave.create.endAt': 'End',
+      'leave.create.hours': 'Hours',
+      'leave.create.hoursHint': '1 day = 8 hours',
+      'leave.create.reason': 'Reason (optional)',
+      'leave.create.reason.placeholder': 'e.g. Family event',
+      'leave.create.submit': 'Submit',
+      'leave.create.cancel': 'Cancel',
+      'leave.create.success':
+        'Leave requested — notified {{approver}}',
+      'leave.create.successWithoutApprover':
+        'Leave requested — approver will be notified once assigned',
+      'leave.create.insufficient':
+        '{{leaveTypeName}} short by {{hours}}h',
+      'leave.create.duplicate':
+        'You already have a leave on the same date(s)',
+      'leave.create.approverHint': '{{name}} will be notified',
+      'leave.create.approverUnknown':
+        'Approver will be assigned automatically (your team lead)',
+      'leave.create.totalHours': 'Total {{hours}}h',
+      'leave.create.shortcut': 'Press Cmd/Ctrl + Enter to submit',
+      'leave.create.draftRestored': 'Restored your previous draft',
+
+      'leave.status.pending': 'Pending',
+      'leave.status.approved': 'Approved',
+      'leave.status.rejected': 'Rejected',
+      'leave.status.cancelled': 'Cancelled',
+
+      'leave.my.title': 'My leave',
+      'leave.my.subtitle': 'Track your requested leave.',
+      'leave.my.empty': 'No leave requests yet',
+      'leave.my.newButton': '+ New leave',
+      'leave.my.loadError': 'Failed to load list',
+
+      'leave.cancel.button': 'Cancel',
+      'leave.cancel.undoMessage':
+        'Cancellation pending — undo within 5 seconds',
+      'leave.cancel.success': 'Leave cancelled',
+      'leave.cancel.error': 'Failed to cancel',
+
+      'leave.approvals.title': 'Approvals queue',
+      'leave.approvals.subtitle': 'Process leave requests awaiting your action.',
+      'leave.approvals.empty': 'No approvals pending',
+      'leave.approvals.col.requester': 'Requester',
+      'leave.approvals.col.type': 'Type',
+      'leave.approvals.col.period': 'Period',
+      'leave.approvals.col.hours': 'Hours',
+      'leave.approvals.col.reason': 'Reason',
+      'leave.approvals.col.actions': 'Actions',
+      'leave.approvals.approve.success': 'Approved',
+      'leave.approvals.reject.success': 'Rejected',
+      'leave.approvals.reject.dialog.title': 'Reject reason',
+      'leave.approvals.reject.dialog.reason': 'Reason',
+      'leave.approvals.reject.dialog.submit': 'Reject',
+      'leave.approvals.reject.reasonRequired':
+        'Please enter a rejection reason',
+      'leave.approvals.loadError': 'Failed to load list',
+
+      'leave.balance.title': 'My balance',
+      'leave.balance.remaining': '{{hours}}h',
+      'leave.balance.empty': 'No balances yet',
+      'leave.balance.used': '{{used}}h used / {{granted}}h granted',
+
+      'error.INSUFFICIENT_LEAVE_BALANCE': 'Leave balance is insufficient',
+      'error.LEAVE_BALANCE_INSUFFICIENT': 'Leave balance is insufficient',
+      'error.DUPLICATE_LEAVE_DATE':
+        'You already have a leave on the same date(s)',
+      'error.INVALID_DATE_RANGE':
+        'End date is before the start date',
+      'error.APPROVAL_INVALID_STATE': 'This request has already been processed',
+      'error.field.endAt.beforeStart':
+        'End must be the same as or after the start',
+      'error.field.startAt.invalid': 'Invalid start date format',
+      'error.field.endAt.invalid': 'Invalid end date format',
+      'error.field.hours.required': 'Please enter hours',
+      'error.field.leaveTypeId.required': 'Please choose a leave type',
     },
   },
 } as const;
