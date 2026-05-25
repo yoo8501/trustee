@@ -11,26 +11,49 @@ import (
 )
 
 type Querier interface {
+	AdjustLeaveBalanceHours(ctx context.Context, arg AdjustLeaveBalanceHoursParams) (LeaveBalance, error)
+	CountHolidays(ctx context.Context, tenantID int64) (int64, error)
+	CountLeaveTypes(ctx context.Context, tenantID int64) (int64, error)
 	CountTeams(ctx context.Context, tenantID int64) (int64, error)
 	CountUsers(ctx context.Context, tenantID int64) (int64, error)
+	CreateLeaveBalanceAdjustment(ctx context.Context, arg CreateLeaveBalanceAdjustmentParams) (LeaveBalanceAdjustment, error)
+	CreateLeaveType(ctx context.Context, arg CreateLeaveTypeParams) (LeaveType, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteExpiredRefreshTokens(ctx context.Context, expiresAt pgtype.Timestamptz) error
+	GetHolidayByID(ctx context.Context, arg GetHolidayByIDParams) (Holiday, error)
+	GetLeaveBalanceByID(ctx context.Context, arg GetLeaveBalanceByIDParams) (LeaveBalance, error)
+	GetLeaveBalanceForUserTypeYear(ctx context.Context, arg GetLeaveBalanceForUserTypeYearParams) (LeaveBalance, error)
+	GetLeaveTypeByCode(ctx context.Context, arg GetLeaveTypeByCodeParams) (LeaveType, error)
+	GetLeaveTypeByID(ctx context.Context, arg GetLeaveTypeByIDParams) (LeaveType, error)
 	GetRefreshToken(ctx context.Context, jti pgtype.UUID) (RefreshToken, error)
 	GetTeamByID(ctx context.Context, arg GetTeamByIDParams) (Team, error)
 	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (User, error)
 	GetUserByID(ctx context.Context, arg GetUserByIDParams) (User, error)
 	GetUserTokenVersion(ctx context.Context, arg GetUserTokenVersionParams) (GetUserTokenVersionRow, error)
 	IncrementUserTokenVersion(ctx context.Context, arg IncrementUserTokenVersionParams) (int32, error)
+	ListActiveLeaveTypes(ctx context.Context, tenantID int64) ([]LeaveType, error)
+	ListActiveUsersForAccrual(ctx context.Context, tenantID int64) ([]User, error)
+	ListHolidays(ctx context.Context, tenantID int64) ([]Holiday, error)
+	ListHolidaysInRange(ctx context.Context, arg ListHolidaysInRangeParams) ([]Holiday, error)
+	ListLeaveBalanceAdjustments(ctx context.Context, arg ListLeaveBalanceAdjustmentsParams) ([]LeaveBalanceAdjustment, error)
+	ListLeaveBalancesByUser(ctx context.Context, arg ListLeaveBalancesByUserParams) ([]LeaveBalance, error)
+	ListLeaveBalancesByUserYear(ctx context.Context, arg ListLeaveBalancesByUserYearParams) ([]LeaveBalance, error)
+	ListLeaveTypes(ctx context.Context, arg ListLeaveTypesParams) ([]LeaveType, error)
 	ListTeams(ctx context.Context, arg ListTeamsParams) ([]Team, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
 	// 1회용 회전: used_at IS NULL 인 경우에만 마킹 성공. 이미 used 인 경우 0 rows.
 	// 호출자가 RETURNING 결과로 0 rows 여부를 판단해 reuse 감지를 수행한다.
 	MarkRefreshTokenUsed(ctx context.Context, jti pgtype.UUID) (RefreshToken, error)
+	ReleaseAdvisoryLockAccrual(ctx context.Context, dollar_1 int64) (bool, error)
+	SoftDeleteLeaveType(ctx context.Context, arg SoftDeleteLeaveTypeParams) error
 	SoftDeleteTeam(ctx context.Context, arg SoftDeleteTeamParams) error
+	TryAdvisoryLockAccrual(ctx context.Context, dollar_1 int64) (bool, error)
+	UpdateLeaveType(ctx context.Context, arg UpdateLeaveTypeParams) (LeaveType, error)
 	UpdateTeam(ctx context.Context, arg UpdateTeamParams) (Team, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpsertLeaveBalanceGrant(ctx context.Context, arg UpsertLeaveBalanceGrantParams) (LeaveBalance, error)
 }
 
 var _ Querier = (*Queries)(nil)

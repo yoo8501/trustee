@@ -99,6 +99,53 @@ func (ns NullUserStatus) Value() (driver.Value, error) {
 	return string(ns.UserStatus), nil
 }
 
+type Holiday struct {
+	ID          int64              `json:"id"`
+	TenantID    int64              `json:"tenant_id"`
+	Date        pgtype.Date        `json:"date"`
+	Name        string             `json:"name"`
+	IsRecurring bool               `json:"is_recurring"`
+	CountryCode string             `json:"country_code"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type LeaveBalance struct {
+	ID           int64              `json:"id"`
+	TenantID     int64              `json:"tenant_id"`
+	UserID       int64              `json:"user_id"`
+	LeaveTypeID  int64              `json:"leave_type_id"`
+	PeriodYear   int32              `json:"period_year"`
+	GrantedHours pgtype.Numeric     `json:"granted_hours"`
+	UsedHours    pgtype.Numeric     `json:"used_hours"`
+	ExpiresAt    pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type LeaveBalanceAdjustment struct {
+	ID          int64              `json:"id"`
+	TenantID    int64              `json:"tenant_id"`
+	BalanceID   int64              `json:"balance_id"`
+	ActorUserID int64              `json:"actor_user_id"`
+	DeltaHours  pgtype.Numeric     `json:"delta_hours"`
+	Reason      string             `json:"reason"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type LeaveType struct {
+	ID            int64              `json:"id"`
+	TenantID      int64              `json:"tenant_id"`
+	Code          string             `json:"code"`
+	Name          string             `json:"name"`
+	DefaultHours  pgtype.Numeric     `json:"default_hours"`
+	AccrualPolicy []byte             `json:"accrual_policy"`
+	IsPaid        bool               `json:"is_paid"`
+	IsActive      bool               `json:"is_active"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
+}
+
 type RefreshToken struct {
 	Jti       pgtype.UUID        `json:"jti"`
 	UserID    int64              `json:"user_id"`
