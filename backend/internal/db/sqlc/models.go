@@ -258,6 +258,23 @@ type Delegation struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
+type ExpenseReport struct {
+	ID              int64              `json:"id"`
+	TenantID        int64              `json:"tenant_id"`
+	RequesterID     int64              `json:"requester_id"`
+	AmountWon       int64              `json:"amount_won"`
+	Vendor          string             `json:"vendor"`
+	Purpose         string             `json:"purpose"`
+	PaidAt          pgtype.Date        `json:"paid_at"`
+	AttachmentUrl   pgtype.Text        `json:"attachment_url"`
+	Status          LeaveRequestStatus `json:"status"`
+	ApproverID      pgtype.Int8        `json:"approver_id"`
+	DecidedAt       pgtype.Timestamptz `json:"decided_at"`
+	DecisionComment pgtype.Text        `json:"decision_comment"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Holiday struct {
 	ID          int64              `json:"id"`
 	TenantID    int64              `json:"tenant_id"`
@@ -320,6 +337,18 @@ type LeaveType struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
+}
+
+type Notification struct {
+	ID         int64              `json:"id"`
+	TenantID   int64              `json:"tenant_id"`
+	UserID     int64              `json:"user_id"`
+	Type       string             `json:"type"`
+	Title      string             `json:"title"`
+	Body       string             `json:"body"`
+	RelatedUrl pgtype.Text        `json:"related_url"`
+	ReadAt     pgtype.Timestamptz `json:"read_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 type RefreshToken struct {

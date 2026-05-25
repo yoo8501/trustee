@@ -59,4 +59,15 @@ const (
 	// InvalidDateRange — start_at > end_at (400). VALIDATION_FAILED 보다 구체적.
 	// Sprint 6 LeaveRequest. FE 는 form field error.
 	InvalidDateRange = "INVALID_DATE_RANGE"
+
+	// FileTooLarge — 첨부 파일 크기 초과 (413).
+	// Sprint 7 ExpenseReport 첨부. FE 는 inline 안내 ("최대 10MB").
+	FileTooLarge = "FILE_TOO_LARGE"
+	// InvalidMimeType — 첨부 파일 mime type 불일치 (400).
+	// Sprint 7 ExpenseReport 첨부. FE 는 inline 안내 ("이미지 또는 PDF만 가능").
+	InvalidMimeType = "INVALID_MIME_TYPE"
+
+	// DateRangeTooLarge — 캘린더 / 통계 조회 시 from~to 범위가 정책 한도 (3개월) 초과 (400).
+	// Sprint 8 공유 캘린더. FE 는 form field error 또는 toast 로 안내.
+	DateRangeTooLarge = "DATE_RANGE_TOO_LARGE"
 )
