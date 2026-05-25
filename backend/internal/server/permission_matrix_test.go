@@ -109,9 +109,9 @@ func TestPermissionMatrix(t *testing.T) {
 			expectStatus: http.StatusOK,
 		},
 		{
-			name: "hr_manager → /api/teams (create) 200", role: dbq.UserRoleHrManager,
+			name: "hr_manager → /api/teams (create) 201", role: dbq.UserRoleHrManager,
 			method: http.MethodPost, path: "/api/teams", body: map[string]any{"name": "TeamHR"},
-			expectStatus: http.StatusOK,
+			expectStatus: http.StatusCreated,
 		},
 
 		// ---- super_admin (모든 라우트 통과) ----
