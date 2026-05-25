@@ -131,6 +131,7 @@ export function NotificationDropdown({
                   />
                 )}
                 <ListItemText
+                  disableTypography
                   primary={
                     <Typography
                       variant="body2"
@@ -140,10 +141,11 @@ export function NotificationDropdown({
                     </Typography>
                   }
                   secondary={
-                    <Stack spacing={0.25}>
+                    <Stack spacing={0.25} component="span">
                       <Typography
                         variant="caption"
                         color="text.secondary"
+                        component="span"
                         sx={{ display: 'block' }}
                       >
                         {n.body}
@@ -151,6 +153,7 @@ export function NotificationDropdown({
                       <Typography
                         variant="caption"
                         color="text.disabled"
+                        component="span"
                         sx={{ display: 'block' }}
                       >
                         {formatRelative(n.createdAt)}
