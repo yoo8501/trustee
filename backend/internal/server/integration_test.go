@@ -363,6 +363,81 @@ func (f *fakeStore) ListTeamDescendants(ctx context.Context, arg dbq.ListTeamDes
 	return []int64{arg.RootTeamID}, nil
 }
 
+// ---- leave_requests stubs (Sprint 6) ----
+//
+// 통합 테스트는 leave-requests 라우트 자체 검증보다는 라우터/권한 게이트 동작에 집중.
+// 안전 default — 모든 조회는 ErrNoRows, 변경 메서드는 빈 결과.
+
+func (f *fakeStore) GetLeaveRequestByID(ctx context.Context, arg dbq.GetLeaveRequestByIDParams) (dbq.LeaveRequest, error) {
+	return dbq.LeaveRequest{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) GetLeaveRequestForUpdate(ctx context.Context, arg dbq.GetLeaveRequestForUpdateParams) (dbq.LeaveRequest, error) {
+	return dbq.LeaveRequest{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) CreateLeaveRequest(ctx context.Context, arg dbq.CreateLeaveRequestParams) (dbq.LeaveRequest, error) {
+	return dbq.LeaveRequest{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) FindOverlappingLeaveRequests(ctx context.Context, arg dbq.FindOverlappingLeaveRequestsParams) ([]dbq.LeaveRequest, error) {
+	return nil, nil
+}
+
+func (f *fakeStore) CancelLeaveRequest(ctx context.Context, arg dbq.CancelLeaveRequestParams) (dbq.LeaveRequest, error) {
+	return dbq.LeaveRequest{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) ListLeaveRequestsByRequester(ctx context.Context, arg dbq.ListLeaveRequestsByRequesterParams) ([]dbq.LeaveRequest, error) {
+	return nil, nil
+}
+
+func (f *fakeStore) CountLeaveRequestsByRequester(ctx context.Context, arg dbq.CountLeaveRequestsByRequesterParams) (int64, error) {
+	return 0, nil
+}
+
+func (f *fakeStore) ListPendingLeaveRequestsByApprover(ctx context.Context, arg dbq.ListPendingLeaveRequestsByApproverParams) ([]dbq.LeaveRequest, error) {
+	return nil, nil
+}
+
+func (f *fakeStore) CountPendingLeaveRequestsByApprover(ctx context.Context, arg dbq.CountPendingLeaveRequestsByApproverParams) (int64, error) {
+	return 0, nil
+}
+
+func (f *fakeStore) UpdateLeaveRequestDecision(ctx context.Context, arg dbq.UpdateLeaveRequestDecisionParams) (dbq.LeaveRequest, error) {
+	return dbq.LeaveRequest{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) IncrementLeaveBalanceUsed(ctx context.Context, arg dbq.IncrementLeaveBalanceUsedParams) (dbq.LeaveBalance, error) {
+	return dbq.LeaveBalance{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) FetchApprovedLeaveDaysForUsers(ctx context.Context, arg dbq.FetchApprovedLeaveDaysForUsersParams) ([]dbq.FetchApprovedLeaveDaysForUsersRow, error) {
+	return nil, nil
+}
+
+// ---- delegations stubs (Sprint 6) ----
+
+func (f *fakeStore) CreateDelegation(ctx context.Context, arg dbq.CreateDelegationParams) (dbq.Delegation, error) {
+	return dbq.Delegation{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) GetDelegationByID(ctx context.Context, arg dbq.GetDelegationByIDParams) (dbq.Delegation, error) {
+	return dbq.Delegation{}, pgx.ErrNoRows
+}
+
+func (f *fakeStore) DeleteDelegation(ctx context.Context, arg dbq.DeleteDelegationParams) error {
+	return nil
+}
+
+func (f *fakeStore) ListDelegationsByDelegator(ctx context.Context, arg dbq.ListDelegationsByDelegatorParams) ([]dbq.Delegation, error) {
+	return nil, nil
+}
+
+func (f *fakeStore) ListActiveDelegationsByDelegator(ctx context.Context, arg dbq.ListActiveDelegationsByDelegatorParams) ([]dbq.Delegation, error) {
+	return nil, nil
+}
+
 var _ server.DomainStore = (*fakeStore)(nil)
 
 // ---- 통합 테스트 ----

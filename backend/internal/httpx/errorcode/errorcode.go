@@ -44,4 +44,19 @@ const (
 	// CannotTerminateSelf — super_admin 본인이 본인 계정을 terminate 처리하려 시도 (400).
 	// Sprint 9 관리자 화면 + 감사 로그 도메인. FE 는 toast / form error.
 	CannotTerminateSelf = "CANNOT_TERMINATE_SELF"
+
+	// ApprovalInvalidState — 결재 상태 전이 불가 (409).
+	// 예: 이미 승인/반려된 결재를 다시 승인/반려/취소 시도.
+	// Sprint 6 LeaveRequest. FE 는 mutation hook 메시지.
+	ApprovalInvalidState = "APPROVAL_INVALID_STATE"
+	// InsufficientLeaveBalance — 휴가 신청 시점 잔여 부족 (409).
+	// details.shortfall_hours (float) 동봉.
+	// Sprint 6 LeaveRequest. FE 는 form inline 사유 표시.
+	InsufficientLeaveBalance = "INSUFFICIENT_LEAVE_BALANCE"
+	// DuplicateLeaveDate — 같은 사용자의 pending|approved 신청과 날짜 겹침 (409).
+	// Sprint 6 LeaveRequest. FE 는 form 단계 차단 + 안내.
+	DuplicateLeaveDate = "DUPLICATE_LEAVE_DATE"
+	// InvalidDateRange — start_at > end_at (400). VALIDATION_FAILED 보다 구체적.
+	// Sprint 6 LeaveRequest. FE 는 form field error.
+	InvalidDateRange = "INVALID_DATE_RANGE"
 )

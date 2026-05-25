@@ -12,22 +12,41 @@ import (
 
 type Querier interface {
 	AdjustLeaveBalanceHours(ctx context.Context, arg AdjustLeaveBalanceHoursParams) (LeaveBalance, error)
+	// Cancel — 본인이 pending 상태일 때만. WHERE status='pending' 으로 race 방지.
+	CancelLeaveRequest(ctx context.Context, arg CancelLeaveRequestParams) (LeaveRequest, error)
 	CountAttendanceAudit(ctx context.Context, arg CountAttendanceAuditParams) (int64, error)
 	CountHolidays(ctx context.Context, tenantID int64) (int64, error)
+	CountLeaveRequestsByRequester(ctx context.Context, arg CountLeaveRequestsByRequesterParams) (int64, error)
 	CountLeaveTypes(ctx context.Context, tenantID int64) (int64, error)
+	CountPendingLeaveRequestsByApprover(ctx context.Context, arg CountPendingLeaveRequestsByApproverParams) (int64, error)
 	CountTeams(ctx context.Context, tenantID int64) (int64, error)
 	CountUsers(ctx context.Context, tenantID int64) (int64, error)
 	CreateAttendanceCheckIn(ctx context.Context, arg CreateAttendanceCheckInParams) (AttendanceRecord, error)
+	// Sprint 6: delegations CRUD + 활성 위임 조회.
+	CreateDelegation(ctx context.Context, arg CreateDelegationParams) (Delegation, error)
 	CreateLeaveBalanceAdjustment(ctx context.Context, arg CreateLeaveBalanceAdjustmentParams) (LeaveBalanceAdjustment, error)
+	CreateLeaveRequest(ctx context.Context, arg CreateLeaveRequestParams) (LeaveRequest, error)
 	CreateLeaveType(ctx context.Context, arg CreateLeaveTypeParams) (LeaveType, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteDelegation(ctx context.Context, arg DeleteDelegationParams) error
 	DeleteExpiredRefreshTokens(ctx context.Context, expiresAt pgtype.Timestamptz) error
+	// Sprint 6 stats integration — Scoped Querier 가 일별 휴가 펼치기 위해 호출.
+	// approved 상태의 휴가만 통계 보정에 반영.
+	FetchApprovedLeaveDaysForUsers(ctx context.Context, arg FetchApprovedLeaveDaysForUsersParams) ([]FetchApprovedLeaveDaysForUsersRow, error)
+	// 같은 사용자, pending|approved 상태에서 [start_at, end_at] 가 겹치는 신청 검색.
+	// 중복 검증 (DUPLICATE_LEAVE_DATE) 에 사용.
+	FindOverlappingLeaveRequests(ctx context.Context, arg FindOverlappingLeaveRequestsParams) ([]LeaveRequest, error)
 	GetAttendanceByUserDate(ctx context.Context, arg GetAttendanceByUserDateParams) (AttendanceRecord, error)
+	GetDelegationByID(ctx context.Context, arg GetDelegationByIDParams) (Delegation, error)
 	GetHolidayByID(ctx context.Context, arg GetHolidayByIDParams) (Holiday, error)
 	GetLeaveBalanceByID(ctx context.Context, arg GetLeaveBalanceByIDParams) (LeaveBalance, error)
 	GetLeaveBalanceForUserTypeYear(ctx context.Context, arg GetLeaveBalanceForUserTypeYearParams) (LeaveBalance, error)
+	// Sprint 6: leave_requests CRUD + 결재 상태 전이 + 잔여 차감 트랜잭션 지원.
+	GetLeaveRequestByID(ctx context.Context, arg GetLeaveRequestByIDParams) (LeaveRequest, error)
+	// Approve/Reject 트랜잭션 내부 — SELECT FOR UPDATE 로 동시성 보호.
+	GetLeaveRequestForUpdate(ctx context.Context, arg GetLeaveRequestForUpdateParams) (LeaveRequest, error)
 	GetLeaveTypeByCode(ctx context.Context, arg GetLeaveTypeByCodeParams) (LeaveType, error)
 	GetLeaveTypeByID(ctx context.Context, arg GetLeaveTypeByIDParams) (LeaveType, error)
 	GetRefreshToken(ctx context.Context, jti pgtype.UUID) (RefreshToken, error)
@@ -35,7 +54,12 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (User, error)
 	GetUserByID(ctx context.Context, arg GetUserByIDParams) (User, error)
 	GetUserTokenVersion(ctx context.Context, arg GetUserTokenVersionParams) (GetUserTokenVersionRow, error)
+	// Approve 트랜잭션 내부 — UPSERT 로 잔여 row 없으면 0 granted 로 생성 + used += hours.
+	IncrementLeaveBalanceUsed(ctx context.Context, arg IncrementLeaveBalanceUsedParams) (LeaveBalance, error)
 	IncrementUserTokenVersion(ctx context.Context, arg IncrementUserTokenVersionParams) (int32, error)
+	// Sprint 6 resolver — approver_id 결정 시점에 활성 위임 매칭.
+	// valid_from <= at <= valid_to.
+	ListActiveDelegationsByDelegator(ctx context.Context, arg ListActiveDelegationsByDelegatorParams) ([]Delegation, error)
 	ListActiveLeaveTypes(ctx context.Context, tenantID int64) ([]LeaveType, error)
 	ListActiveUsersForAccrual(ctx context.Context, tenantID int64) ([]User, error)
 	// scope=team / dept 용. user_id IN (subquery: users WHERE team_id = ANY).
@@ -49,14 +73,18 @@ type Querier interface {
 	// scope 분기는 Go layer 에서 호출 메서드를 분기하는 방식 — SQL 자체를 동적 build 하지 않는다.
 	// scope=me 용. (user_id, work_date) 범위.
 	ListAttendanceByUserRange(ctx context.Context, arg ListAttendanceByUserRangeParams) ([]AttendanceRecord, error)
+	ListDelegationsByDelegator(ctx context.Context, arg ListDelegationsByDelegatorParams) ([]Delegation, error)
 	ListHolidays(ctx context.Context, tenantID int64) ([]Holiday, error)
 	ListHolidaysInRange(ctx context.Context, arg ListHolidaysInRangeParams) ([]Holiday, error)
 	ListLeaveBalanceAdjustments(ctx context.Context, arg ListLeaveBalanceAdjustmentsParams) ([]LeaveBalanceAdjustment, error)
 	ListLeaveBalancesByUser(ctx context.Context, arg ListLeaveBalancesByUserParams) ([]LeaveBalance, error)
 	ListLeaveBalancesByUserYear(ctx context.Context, arg ListLeaveBalancesByUserYearParams) ([]LeaveBalance, error)
+	ListLeaveRequestsByRequester(ctx context.Context, arg ListLeaveRequestsByRequesterParams) ([]LeaveRequest, error)
 	ListLeaveTypes(ctx context.Context, arg ListLeaveTypesParams) ([]LeaveType, error)
 	// 자정 KST cron 이 사용. work_date = yesterday(KST) AND check_out_at IS NULL.
 	ListOpenAttendanceForDate(ctx context.Context, workDate pgtype.Date) ([]AttendanceRecord, error)
+	// 결재자 대기함. approver_id 매칭 + status='pending'.
+	ListPendingLeaveRequestsByApprover(ctx context.Context, arg ListPendingLeaveRequestsByApproverParams) ([]LeaveRequest, error)
 	// Sprint 5: dept_head 산하 팀 전체 (자기 자신 포함) 펼치기. 재귀 CTE.
 	ListTeamDescendants(ctx context.Context, arg ListTeamDescendantsParams) ([]int64, error)
 	ListTeams(ctx context.Context, arg ListTeamsParams) ([]Team, error)
@@ -79,6 +107,8 @@ type Querier interface {
 	SoftDeleteTeam(ctx context.Context, arg SoftDeleteTeamParams) error
 	TryAdvisoryLockAccrual(ctx context.Context, dollar_1 int64) (bool, error)
 	UpdateAttendanceCheckOut(ctx context.Context, arg UpdateAttendanceCheckOutParams) (AttendanceRecord, error)
+	// Approve/Reject 공용 — status + approver_id + decided_at + decision_comment 업데이트.
+	UpdateLeaveRequestDecision(ctx context.Context, arg UpdateLeaveRequestDecisionParams) (LeaveRequest, error)
 	UpdateLeaveType(ctx context.Context, arg UpdateLeaveTypeParams) (LeaveType, error)
 	UpdateTeam(ctx context.Context, arg UpdateTeamParams) (Team, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)

@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/sjseo/docflow/backend/internal/admin"
 	"github.com/sjseo/docflow/backend/internal/auth"
@@ -17,8 +18,10 @@ import (
 	"github.com/sjseo/docflow/backend/internal/hr/attendance"
 	"github.com/sjseo/docflow/backend/internal/hr/attendance/stats"
 	"github.com/sjseo/docflow/backend/internal/hr/audit"
+	"github.com/sjseo/docflow/backend/internal/hr/delegation"
 	"github.com/sjseo/docflow/backend/internal/hr/holiday"
 	"github.com/sjseo/docflow/backend/internal/hr/leave"
+	"github.com/sjseo/docflow/backend/internal/hr/leaverequest"
 	"github.com/sjseo/docflow/backend/internal/hr/scope"
 	"github.com/sjseo/docflow/backend/internal/httpx/apiresult"
 	"github.com/sjseo/docflow/backend/internal/httpx/errorcode"
@@ -41,10 +44,14 @@ type Config struct {
 
 	// JWTIssuer 는 access/refresh 토큰 발급/검증기. nil 이면 인증 라우트가 등록되지 않는다.
 	JWTIssuer *auth.TokenIssuer
+
+	// Pool — Sprint 6 LeaveRequest Approve 트랜잭션에 사용. nil 이면 leave-requests 라우트는
+	// 등록되지 않는다 (다른 도메인은 영향 없음).
+	Pool *pgxpool.Pool
 }
 
 // DomainStore — 도메인 핸들러가 사용하는 store. dbq.Queries 가 그대로 만족한다.
-// (auth.Store + users.Store + teams.Store + leave/holiday/attendance/audit/admin store 의 합집합.)
+// (auth.Store + users.Store + teams.Store + leave/holiday/attendance/audit/admin/leaverequest/delegation store 의 합집합.)
 type DomainStore interface {
 	auth.Store
 	users.Store
@@ -57,7 +64,11 @@ type DomainStore interface {
 	admin.Store
 	audit.Store
 	stats.SQLCQuerier
+	stats.LeaveQuerier
 	scope.HierarchyQuerier
+	leaverequest.Store
+	leaverequest.TxStore
+	delegation.Store
 }
 
 var _ DomainStore = (*dbq.Queries)(nil)
@@ -216,12 +227,14 @@ func registerDomainRoutes(eng *gin.Engine, cfg Config) {
 	api.POST("/hr/attendance/check-in", authMW.Required(), attendanceH.CheckIn)
 	api.POST("/hr/attendance/check-out", authMW.Required(), attendanceH.CheckOut)
 
-	// ---- HR: attendance stats (Sprint 5) ----
+	// ---- HR: attendance stats (Sprint 5 + Sprint 6 leave swap) ----
 	// me / team / all 통계 — Scoped Querier 가 권한 강제 + Repository 단에서 tenant scope.
+	// Sprint 6: NoopLeaveAdjustmentFetcher → SQLLeaveAdjustmentFetcher 로 교체.
 	statsAttStore := stats.NewSQLAttendanceStore(cfg.Store)
 	statsUserStore := stats.NewSQLUserStore(cfg.Store)
 	statsHierarchy := scope.NewSQLHierarchy(cfg.Store)
-	statsSvc := stats.NewService(statsAttStore, statsUserStore, cfg.Store, statsHierarchy, stats.NoopLeaveAdjustmentFetcher{})
+	leaveFetcher := stats.NewSQLLeaveAdjustmentFetcher(cfg.Store, cfg.TenantID)
+	statsSvc := stats.NewService(statsAttStore, statsUserStore, cfg.Store, statsHierarchy, leaveFetcher)
 	statsH := stats.NewHandler(statsSvc)
 
 	// /me : 모든 인증 사용자 본인 통계.
@@ -264,6 +277,39 @@ func registerDomainRoutes(eng *gin.Engine, cfg Config) {
 		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
 		auditH.AttendanceList,
 	)
+
+	// ---- HR: delegations (Sprint 6, 결재 위임) ----
+	delegResolver := delegation.NewResolver(cfg.Store, cfg.TenantID)
+	delegSvc := delegation.NewService(cfg.Store)
+	delegH := delegation.NewHandler(delegSvc)
+	api.POST("/hr/delegations", authMW.Required(), delegH.Create)
+	api.POST("/hr/delegations/me/list", authMW.Required(), delegH.MyList)
+	api.POST("/hr/delegations/delete", authMW.Required(), delegH.Delete)
+
+	// ---- HR: leave-requests (Sprint 6, 휴가 신청 단일 결재) ----
+	// Approve 가 트랜잭션을 필요로 하므로 Pool 이 있을 때만 등록.
+	if cfg.Pool != nil {
+		txMgr := leaverequest.NewPgxTxManager(cfg.Pool)
+		leaveReqSvc := leaverequest.NewService(cfg.Store, txMgr, delegResolver)
+		leaveReqH := leaverequest.NewHandler(leaveReqSvc)
+		leaveReq := api.Group("/hr/leave-requests", authMW.Required())
+		leaveReq.POST("", leaveReqH.Create)
+		leaveReq.GET("/:id", leaveReqH.Get)
+		leaveReq.POST("/me/list", leaveReqH.MyList)
+		leaveReq.POST("/pending/list",
+			authMW.RequireAtLeast(permission.RoleTeamLead),
+			leaveReqH.PendingList,
+		)
+		leaveReq.POST("/:id/approve",
+			authMW.RequireAtLeast(permission.RoleTeamLead),
+			leaveReqH.Approve,
+		)
+		leaveReq.POST("/:id/reject",
+			authMW.RequireAtLeast(permission.RoleTeamLead),
+			leaveReqH.Reject,
+		)
+		leaveReq.POST("/:id/cancel", leaveReqH.Cancel)
+	}
 }
 
 // statsTeamContext — Sprint 5 stats 핸들러용 미들웨어.

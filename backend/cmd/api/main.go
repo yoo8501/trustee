@@ -63,6 +63,7 @@ func main() {
 	}
 	if pool != nil {
 		engineCfg.Store = dbq.New(pool)
+		engineCfg.Pool = pool
 	}
 
 	eng, err := server.NewEngine(engineCfg)

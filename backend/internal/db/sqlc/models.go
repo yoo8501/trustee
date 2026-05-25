@@ -99,6 +99,50 @@ func (ns NullAttendanceStatus) Value() (driver.Value, error) {
 	return string(ns.AttendanceStatus), nil
 }
 
+type LeaveRequestStatus string
+
+const (
+	LeaveRequestStatusPending   LeaveRequestStatus = "pending"
+	LeaveRequestStatusApproved  LeaveRequestStatus = "approved"
+	LeaveRequestStatusRejected  LeaveRequestStatus = "rejected"
+	LeaveRequestStatusCancelled LeaveRequestStatus = "cancelled"
+)
+
+func (e *LeaveRequestStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LeaveRequestStatus(s)
+	case string:
+		*e = LeaveRequestStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LeaveRequestStatus: %T", src)
+	}
+	return nil
+}
+
+type NullLeaveRequestStatus struct {
+	LeaveRequestStatus LeaveRequestStatus `json:"leave_request_status"`
+	Valid              bool               `json:"valid"` // Valid is true if LeaveRequestStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLeaveRequestStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.LeaveRequestStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LeaveRequestStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLeaveRequestStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LeaveRequestStatus), nil
+}
+
 type UserRole string
 
 const (
@@ -203,6 +247,17 @@ type AttendanceRecord struct {
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Delegation struct {
+	ID          int64              `json:"id"`
+	TenantID    int64              `json:"tenant_id"`
+	DelegatorID int64              `json:"delegator_id"`
+	DelegateID  int64              `json:"delegate_id"`
+	ValidFrom   pgtype.Timestamptz `json:"valid_from"`
+	ValidTo     pgtype.Timestamptz `json:"valid_to"`
+	Scope       []byte             `json:"scope"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
 type Holiday struct {
 	ID          int64              `json:"id"`
 	TenantID    int64              `json:"tenant_id"`
@@ -234,6 +289,23 @@ type LeaveBalanceAdjustment struct {
 	DeltaHours  pgtype.Numeric     `json:"delta_hours"`
 	Reason      string             `json:"reason"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type LeaveRequest struct {
+	ID              int64              `json:"id"`
+	TenantID        int64              `json:"tenant_id"`
+	RequesterID     int64              `json:"requester_id"`
+	LeaveTypeID     int64              `json:"leave_type_id"`
+	StartAt         pgtype.Timestamptz `json:"start_at"`
+	EndAt           pgtype.Timestamptz `json:"end_at"`
+	Hours           pgtype.Numeric     `json:"hours"`
+	Reason          pgtype.Text        `json:"reason"`
+	Status          LeaveRequestStatus `json:"status"`
+	ApproverID      pgtype.Int8        `json:"approver_id"`
+	DecidedAt       pgtype.Timestamptz `json:"decided_at"`
+	DecisionComment pgtype.Text        `json:"decision_comment"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 type LeaveType struct {

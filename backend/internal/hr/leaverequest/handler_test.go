@@ -310,6 +310,242 @@ func TestHandler_Reject_CommentRequired_400(t *testing.T) {
 	}
 }
 
+func TestInsufficientBalanceError_Error(t *testing.T) {
+	e := &leaverequest.InsufficientBalanceError{ShortfallHours: 4.0}
+	if e.Error() == "" {
+		t.Errorf("Error()=empty")
+	}
+}
+
+func TestHandler_Create_MalformedJSON_400(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	eng := engineFor(requesterID, permission.RoleGeneral, newSvc(f))
+
+	req := httptest.NewRequest(http.MethodPost, "/api/hr/leave-requests", bytes.NewBufferString("{not json"))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	eng.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status=%d body=%s", w.Code, w.Body.String())
+	}
+	var env apiresult.Envelope[any]
+	_ = json.Unmarshal(w.Body.Bytes(), &env)
+	if env.Details == nil || env.Details.ErrorCode != errorcode.InvalidRequest {
+		t.Fatalf("errorCode=%v", env.Details)
+	}
+}
+
+func TestHandler_Reject_MalformedJSON_400(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	eng := engineFor(managerID, permission.RoleTeamLead, newSvc(f))
+
+	req := httptest.NewRequest(http.MethodPost, "/api/hr/leave-requests/999/reject", bytes.NewBufferString("{not"))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	eng.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status=%d body=%s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandler_Get_Own_200(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	startAt, _ := time.Parse(time.RFC3339, "2026-06-01T09:00:00+09:00")
+	endAt, _ := time.Parse(time.RFC3339, "2026-06-01T18:00:00+09:00")
+	f.requests[300] = dbq.LeaveRequest{
+		ID: 300, TenantID: tenantID, RequesterID: requesterID, LeaveTypeID: leaveTypeID,
+		StartAt: pgtype.Timestamptz{Time: startAt, Valid: true},
+		EndAt:   pgtype.Timestamptz{Time: endAt, Valid: true},
+		Hours:   numericFromFloat(8),
+		Status:  dbq.LeaveRequestStatusPending,
+		ApproverID: pgtype.Int8{Int64: managerID, Valid: true},
+	}
+	eng := engineFor(requesterID, permission.RoleGeneral, newSvc(f))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/hr/leave-requests/300", nil)
+	w := httptest.NewRecorder()
+	eng.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandler_Get_OtherUser_403(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	startAt, _ := time.Parse(time.RFC3339, "2026-06-01T09:00:00+09:00")
+	endAt, _ := time.Parse(time.RFC3339, "2026-06-01T18:00:00+09:00")
+	f.requests[301] = dbq.LeaveRequest{
+		ID: 301, TenantID: tenantID, RequesterID: requesterID, LeaveTypeID: leaveTypeID,
+		StartAt: pgtype.Timestamptz{Time: startAt, Valid: true},
+		EndAt:   pgtype.Timestamptz{Time: endAt, Valid: true},
+		Hours:   numericFromFloat(8),
+		Status:  dbq.LeaveRequestStatusPending,
+		ApproverID: pgtype.Int8{Int64: managerID, Valid: true},
+	}
+	eng := engineFor(otherUserID, permission.RoleGeneral, newSvc(f))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/hr/leave-requests/301", nil)
+	w := httptest.NewRecorder()
+	eng.ServeHTTP(w, req)
+	if w.Code != http.StatusForbidden {
+		t.Fatalf("status=%d body=%s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandler_Get_NotFound_404(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	eng := engineFor(requesterID, permission.RoleGeneral, newSvc(f))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/hr/leave-requests/9999", nil)
+	w := httptest.NewRecorder()
+	eng.ServeHTTP(w, req)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("status=%d body=%s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandler_Get_InvalidID_400(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	eng := engineFor(requesterID, permission.RoleGeneral, newSvc(f))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/hr/leave-requests/abc", nil)
+	w := httptest.NewRecorder()
+	eng.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status=%d body=%s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandler_MyList_OK_200(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	startAt, _ := time.Parse(time.RFC3339, "2026-06-01T09:00:00+09:00")
+	endAt, _ := time.Parse(time.RFC3339, "2026-06-01T18:00:00+09:00")
+	f.requests[310] = dbq.LeaveRequest{
+		ID: 310, TenantID: tenantID, RequesterID: requesterID, LeaveTypeID: leaveTypeID,
+		StartAt: pgtype.Timestamptz{Time: startAt, Valid: true},
+		EndAt:   pgtype.Timestamptz{Time: endAt, Valid: true},
+		Hours:   numericFromFloat(8),
+		Status:  dbq.LeaveRequestStatusPending,
+		ApproverID: pgtype.Int8{Int64: managerID, Valid: true},
+	}
+	eng := engineFor(requesterID, permission.RoleGeneral, newSvc(f))
+
+	w, raw := doJSON(eng, http.MethodPost, "/api/hr/leave-requests/me/list", map[string]any{
+		"page": 1, "size": 50,
+	})
+	if w.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", w.Code, raw)
+	}
+	var env apiresult.Envelope[[]leaveRequestData]
+	_ = json.Unmarshal(raw, &env)
+	if !env.Success || env.Data == nil || len(*env.Data) != 1 {
+		t.Fatalf("env=%+v body=%s", env, raw)
+	}
+}
+
+func TestHandler_PendingList_OK_200(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	startAt, _ := time.Parse(time.RFC3339, "2026-06-01T09:00:00+09:00")
+	endAt, _ := time.Parse(time.RFC3339, "2026-06-01T18:00:00+09:00")
+	f.requests[320] = dbq.LeaveRequest{
+		ID: 320, TenantID: tenantID, RequesterID: requesterID, LeaveTypeID: leaveTypeID,
+		StartAt: pgtype.Timestamptz{Time: startAt, Valid: true},
+		EndAt:   pgtype.Timestamptz{Time: endAt, Valid: true},
+		Hours:   numericFromFloat(8),
+		Status:  dbq.LeaveRequestStatusPending,
+		ApproverID: pgtype.Int8{Int64: managerID, Valid: true},
+	}
+	eng := engineFor(managerID, permission.RoleTeamLead, newSvc(f))
+
+	w, raw := doJSON(eng, http.MethodPost, "/api/hr/leave-requests/pending/list", map[string]any{})
+	if w.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", w.Code, raw)
+	}
+}
+
+func TestHandler_Reject_Success_200(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	startAt, _ := time.Parse(time.RFC3339, "2026-06-01T09:00:00+09:00")
+	endAt, _ := time.Parse(time.RFC3339, "2026-06-01T18:00:00+09:00")
+	f.requests[330] = dbq.LeaveRequest{
+		ID: 330, TenantID: tenantID, RequesterID: requesterID, LeaveTypeID: leaveTypeID,
+		StartAt: pgtype.Timestamptz{Time: startAt, Valid: true},
+		EndAt:   pgtype.Timestamptz{Time: endAt, Valid: true},
+		Hours:   numericFromFloat(8),
+		Status:  dbq.LeaveRequestStatusPending,
+		ApproverID: pgtype.Int8{Int64: managerID, Valid: true},
+	}
+	eng := engineFor(managerID, permission.RoleTeamLead, newSvc(f))
+
+	w, raw := doJSON(eng, http.MethodPost, "/api/hr/leave-requests/330/reject", map[string]any{
+		"comment": "사유 미흡",
+	})
+	if w.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", w.Code, raw)
+	}
+	var env apiresult.Envelope[leaveRequestData]
+	_ = json.Unmarshal(raw, &env)
+	if env.Data == nil || env.Data.Status != string(dbq.LeaveRequestStatusRejected) {
+		t.Fatalf("status=%s want rejected", env.Data.Status)
+	}
+}
+
+func TestHandler_Cancel_Owner_Success_200(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	startAt, _ := time.Parse(time.RFC3339, "2026-06-01T09:00:00+09:00")
+	endAt, _ := time.Parse(time.RFC3339, "2026-06-01T18:00:00+09:00")
+	f.requests[340] = dbq.LeaveRequest{
+		ID: 340, TenantID: tenantID, RequesterID: requesterID, LeaveTypeID: leaveTypeID,
+		StartAt: pgtype.Timestamptz{Time: startAt, Valid: true},
+		EndAt:   pgtype.Timestamptz{Time: endAt, Valid: true},
+		Hours:   numericFromFloat(8),
+		Status:  dbq.LeaveRequestStatusPending,
+		ApproverID: pgtype.Int8{Int64: managerID, Valid: true},
+	}
+	eng := engineFor(requesterID, permission.RoleGeneral, newSvc(f))
+
+	w, raw := doJSON(eng, http.MethodPost, "/api/hr/leave-requests/340/cancel", nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", w.Code, raw)
+	}
+}
+
+func TestHandler_Cancel_AlreadyApproved_409(t *testing.T) {
+	f := newFakeStore()
+	seedBasicCase(f, 120)
+	startAt, _ := time.Parse(time.RFC3339, "2026-06-01T09:00:00+09:00")
+	endAt, _ := time.Parse(time.RFC3339, "2026-06-01T18:00:00+09:00")
+	f.requests[341] = dbq.LeaveRequest{
+		ID: 341, TenantID: tenantID, RequesterID: requesterID, LeaveTypeID: leaveTypeID,
+		StartAt: pgtype.Timestamptz{Time: startAt, Valid: true},
+		EndAt:   pgtype.Timestamptz{Time: endAt, Valid: true},
+		Hours:   numericFromFloat(8),
+		Status:  dbq.LeaveRequestStatusApproved,
+		ApproverID: pgtype.Int8{Int64: managerID, Valid: true},
+	}
+	eng := engineFor(requesterID, permission.RoleGeneral, newSvc(f))
+
+	w, raw := doJSON(eng, http.MethodPost, "/api/hr/leave-requests/341/cancel", nil)
+	if w.Code != http.StatusConflict {
+		t.Fatalf("status=%d body=%s", w.Code, raw)
+	}
+	var env apiresult.Envelope[any]
+	_ = json.Unmarshal(raw, &env)
+	if env.Details == nil || env.Details.ErrorCode != errorcode.ApprovalInvalidState {
+		t.Fatalf("errorCode=%v", env.Details)
+	}
+}
+
 func TestHandler_Cancel_NotOwner_403(t *testing.T) {
 	f := newFakeStore()
 	seedBasicCase(f, 120)
