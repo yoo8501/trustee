@@ -1,0 +1,19 @@
+# 빌드 산출물
+/bin/
+/out/
+/dist/
+*.test
+*.out
+
+# 환경 / secret (절대 커밋 금지 — CLAUDE.md §3.10)
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+
+# Go
+coverage.txt
+coverage.html

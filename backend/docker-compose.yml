@@ -1,0 +1,44 @@
+# DocFlow backend local dev stack.
+#
+# 부팅: docker compose up --build
+# secret 은 절대 본 파일에 두지 말 것 — dev only 자격증명만 inline.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: docflow-postgres
+    environment:
+      POSTGRES_USER: docflow
+      POSTGRES_PASSWORD: docflow
+      POSTGRES_DB: docflow
+      TZ: Asia/Seoul
+      PGTZ: Asia/Seoul
+    ports:
+      - "5432:5432"
+    volumes:
+      - docflow-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docflow -d docflow"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: docflow-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DOCFLOW_ADDR: ":8080"
+      DOCFLOW_ENV: "dev"
+      DOCFLOW_TENANT_ID: "1"
+      DATABASE_URL: "postgres://docflow:docflow@postgres:5432/docflow?sslmode=disable"
+      TZ: "Asia/Seoul"
+    ports:
+      - "8080:8080"
+
+volumes:
+  docflow-pg-data:
