@@ -123,6 +123,19 @@ function Shell() {
                 </Button>
               </>
             )}
+            {isAuthenticated &&
+              (user?.role === 'hr_manager' ||
+                user?.role === 'super_admin') && (
+                <Button
+                  component={RouterLink}
+                  to="/admin/users"
+                  size="small"
+                  color="inherit"
+                  data-testid="header-admin-link"
+                >
+                  {t('admin.menu.section')}
+                </Button>
+              )}
             <Button
               component={RouterLink}
               to="/healthz"
