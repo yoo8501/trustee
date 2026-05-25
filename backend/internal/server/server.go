@@ -1,7 +1,7 @@
 // Package server — Gin 엔진 부트스트랩.
 //
 // HTTP 핸들러 등록, 미들웨어 체인 구성, /health 및 /debug/error 라우트 등록을 한다.
-// 도메인 핸들러는 Sprint 2 이후 본 패키지를 통해 라우터에 부착된다.
+// Sprint 2 부터 auth / users / teams 도메인 핸들러가 본 패키지를 통해 라우터에 부착된다.
 package server
 
 import (
@@ -10,9 +10,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/sjseo/docflow/backend/internal/auth"
+	dbq "github.com/sjseo/docflow/backend/internal/db/sqlc"
 	"github.com/sjseo/docflow/backend/internal/httpx/apiresult"
 	"github.com/sjseo/docflow/backend/internal/httpx/errorcode"
 	"github.com/sjseo/docflow/backend/internal/httpx/middleware"
+	"github.com/sjseo/docflow/backend/internal/permission"
+	"github.com/sjseo/docflow/backend/internal/teams"
+	"github.com/sjseo/docflow/backend/internal/users"
 )
 
 // Config — 서버 부트스트랩 설정. 의존성은 향후 DB/Cron 등 확장 예정.
@@ -21,7 +26,24 @@ type Config struct {
 	TenantID int64
 	// Logger 가 nil 이면 slog.Default() 를 사용한다.
 	Logger *slog.Logger
+
+	// Store 는 DB 접근 인터페이스. nil 이면 도메인 라우트(auth/users/teams)는 등록되지 않는다
+	// (헬스체크 등 인프라 라우트는 그대로 동작).
+	Store DomainStore
+
+	// JWTIssuer 는 access/refresh 토큰 발급/검증기. nil 이면 인증 라우트가 등록되지 않는다.
+	JWTIssuer *auth.TokenIssuer
 }
+
+// DomainStore — 도메인 핸들러가 사용하는 store. dbq.Queries 가 그대로 만족한다.
+// (auth.Store + users.Store + teams.Store 의 합집합.)
+type DomainStore interface {
+	auth.Store
+	users.Store
+	teams.Store
+}
+
+var _ DomainStore = (*dbq.Queries)(nil)
 
 // NewEngine 은 미들웨어와 기본 라우트가 부착된 Gin 엔진을 만든다.
 //
@@ -30,6 +52,12 @@ type Config struct {
 //  2. Logger    — 요청/응답 구조화 로그
 //  3. Recover   — panic 캡처
 //  4. Tenant    — context 에 tenant id 주입
+//
+// 라우트:
+//   - /health, /debug/error (Sprint 1)
+//   - /api/auth/{register,login,refresh,logout}
+//   - /api/users/{me,list,update}
+//   - /api/teams, /api/teams/:id, /api/teams/{list,update,delete}
 func NewEngine(cfg Config) (*gin.Engine, error) {
 	if cfg.TenantID == 0 {
 		cfg.TenantID = 1
@@ -68,5 +96,63 @@ func NewEngine(cfg Config) (*gin.Engine, error) {
 		))
 	})
 
+	// 도메인 라우트는 store / issuer 가 모두 있을 때만 등록.
+	if cfg.Store != nil && cfg.JWTIssuer != nil {
+		registerDomainRoutes(eng, cfg)
+	}
+
 	return eng, nil
+}
+
+func registerDomainRoutes(eng *gin.Engine, cfg Config) {
+	authSvc := auth.NewService(cfg.Store, cfg.JWTIssuer, cfg.TenantID)
+	authH := auth.NewHandler(authSvc)
+	authMW := auth.NewMiddleware(cfg.JWTIssuer, cfg.Store)
+
+	userSvc := users.NewService(cfg.Store)
+	userH := users.NewHandler(userSvc)
+
+	teamSvc := teams.NewService(cfg.Store)
+	teamH := teams.NewHandler(teamSvc)
+
+	api := eng.Group("/api")
+
+	// ---- auth ----
+	authGrp := api.Group("/auth")
+	authGrp.POST("/register", authH.Register)
+	authGrp.POST("/login", authH.Login)
+	authGrp.POST("/refresh", authH.Refresh)
+	authGrp.POST("/logout", authMW.Required(), authH.Logout)
+
+	// ---- users ----
+	api.GET("/users/me", authMW.Required(), userH.Me)
+	api.POST("/users/list",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		userH.List,
+	)
+	api.POST("/users/update",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleSuperAdmin),
+		userH.Update,
+	)
+
+	// ---- teams ----
+	api.GET("/teams/:id", authMW.Required(), teamH.Get)
+	api.POST("/teams/list", authMW.Required(), teamH.List)
+	api.POST("/teams",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		teamH.Create,
+	)
+	api.POST("/teams/update",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		teamH.Update,
+	)
+	api.POST("/teams/delete",
+		authMW.Required(),
+		authMW.RequireRole(permission.RoleHRManager, permission.RoleSuperAdmin),
+		teamH.Delete,
+	)
 }
