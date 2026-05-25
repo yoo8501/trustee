@@ -5,6 +5,7 @@ import { AdminLayout } from './admin/_layout';
 import { AdminLeaveTypesPage } from './admin/leave-types';
 import { AdminTeamsPage } from './admin/teams';
 import { AdminUsersPage } from './admin/users';
+import { AttendanceRoute } from './attendance';
 import { HealthzRoute } from './healthz';
 import { HomeRoute } from './home';
 import { LoginRoute } from './login';
@@ -55,6 +56,14 @@ export const router = createBrowserRouter([
           { path: 'audit/attendance', element: <AdminAttendanceAuditPage /> },
         ],
       },
+      {
+        path: 'attendance',
+        element: (
+          <ProtectedRoute>
+            <AttendanceRoute />
+          </ProtectedRoute>
+        ),
+      },
       { path: 'healthz', Component: HealthzRoute },
       { path: '*', Component: NotFoundRoute },
     ],
@@ -67,6 +76,7 @@ export {
   AdminLeaveTypesPage,
   AdminTeamsPage,
   AdminUsersPage,
+  AttendanceRoute,
   HealthzRoute,
   HomeRoute,
   LoginRoute,

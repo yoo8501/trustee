@@ -3,3 +3,8 @@ export { AttendanceStatusBadge } from './AttendanceStatusBadge';
 export { CheckInButton } from './CheckInButton';
 export { CheckOutButton } from './CheckOutButton';
 export { DashboardClock } from './DashboardClock';
+export { OvertimeWarning } from './OvertimeWarning';
+export { PeriodTabs } from './PeriodTabs';
+export { RecordsTable } from './RecordsTable';
+export { StatsSummary } from './StatsSummary';
+export { WeeklyChart } from './WeeklyChart';

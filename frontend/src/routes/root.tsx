@@ -103,6 +103,17 @@ function Shell() {
             >
               {t('nav.home')}
             </Button>
+            {isAuthenticated && (
+              <Button
+                component={RouterLink}
+                to="/attendance"
+                size="small"
+                color="inherit"
+                data-testid="header-attendance-link"
+              >
+                {t('nav.attendance')}
+              </Button>
+            )}
             {!isAuthenticated && (
               <>
                 <Button

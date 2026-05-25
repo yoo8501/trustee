@@ -6,6 +6,7 @@ export const resources = {
       'theme.toggle.light': '라이트 모드로 전환',
       'theme.toggle.dark': '다크 모드로 전환',
       'nav.home': '홈',
+      'nav.attendance': '근태',
       'nav.login': '로그인',
       'nav.register': '회원가입',
       'nav.healthz': '서버 상태',
@@ -96,6 +97,34 @@ export const resources = {
       'attendance.status.early_leave': '조퇴',
       'attendance.status.absent': '결근',
       'attendance.status.auto_closed': '자동 마감',
+
+      // ----- Sprint 5 통계 -----
+      'attendance.stats.title': '근태 통계',
+      'attendance.stats.period.day': '일',
+      'attendance.stats.period.week': '주',
+      'attendance.stats.period.month': '월',
+      'attendance.stats.summary.totalActual': '실근무',
+      'attendance.stats.summary.overtime': '연장근로',
+      'attendance.stats.summary.daysPresent': '출근일',
+      'attendance.stats.summary.attendanceRate': '출근율',
+      'attendance.chart.actual': '실근무',
+      'attendance.chart.expected': '기준',
+      'attendance.chart.overtime': '연장',
+      'attendance.chart.aria': '일별 근무시간 차트',
+      'attendance.overtime.warn':
+        '이번 주 누적 {{hours}}시간 — 주 52시간 한도 접근',
+      'attendance.overtime.danger':
+        '이번 주 누적 {{hours}}시간 — 주 52시간 한도 초과',
+      'attendance.team.forbidden': '이 팀의 통계는 조회 권한이 없어요',
+      'attendance.empty': '해당 기간 출근 기록이 없어요',
+      'attendance.error': '통계를 불러오지 못했어요. 다시 시도해 주세요.',
+      'attendance.records.date': '날짜',
+      'attendance.records.checkIn': '출근',
+      'attendance.records.checkOut': '퇴근',
+      'attendance.records.actual': '실근무',
+      'attendance.records.adjusted': '기준',
+      'attendance.records.overtime': '연장',
+      'attendance.records.status': '상태',
 
       // ----- Sprint 9 admin -----
       'admin.menu.section': '관리자',
@@ -216,6 +245,7 @@ export const resources = {
       'theme.toggle.light': 'Switch to light mode',
       'theme.toggle.dark': 'Switch to dark mode',
       'nav.home': 'Home',
+      'nav.attendance': 'Attendance',
       'nav.login': 'Sign in',
       'nav.register': 'Sign up',
       'nav.healthz': 'Server status',
@@ -307,6 +337,35 @@ export const resources = {
       'attendance.status.early_leave': 'Early leave',
       'attendance.status.absent': 'Absent',
       'attendance.status.auto_closed': 'Auto-closed',
+
+      // ----- Sprint 5 stats -----
+      'attendance.stats.title': 'Attendance stats',
+      'attendance.stats.period.day': 'Day',
+      'attendance.stats.period.week': 'Week',
+      'attendance.stats.period.month': 'Month',
+      'attendance.stats.summary.totalActual': 'Worked',
+      'attendance.stats.summary.overtime': 'Overtime',
+      'attendance.stats.summary.daysPresent': 'Days present',
+      'attendance.stats.summary.attendanceRate': 'Attendance rate',
+      'attendance.chart.actual': 'Actual',
+      'attendance.chart.expected': 'Expected',
+      'attendance.chart.overtime': 'Overtime',
+      'attendance.chart.aria': 'Daily working time chart',
+      'attendance.overtime.warn':
+        '{{hours}}h this week — approaching the 52h limit',
+      'attendance.overtime.danger':
+        '{{hours}}h this week — exceeded the 52h limit',
+      'attendance.team.forbidden':
+        'You do not have permission to view this team',
+      'attendance.empty': 'No attendance records for this period',
+      'attendance.error': 'Failed to load stats. Please try again.',
+      'attendance.records.date': 'Date',
+      'attendance.records.checkIn': 'Check-in',
+      'attendance.records.checkOut': 'Check-out',
+      'attendance.records.actual': 'Actual',
+      'attendance.records.adjusted': 'Expected',
+      'attendance.records.overtime': 'Overtime',
+      'attendance.records.status': 'Status',
 
       // ----- Sprint 9 admin -----
       'admin.menu.section': 'Admin',
