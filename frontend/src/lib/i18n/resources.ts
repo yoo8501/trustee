@@ -1,8 +1,78 @@
-// RED stub — Sprint 1 TDD
 export const resources = {
-  ko: { translation: {} },
-  en: { translation: {} },
+  ko: {
+    translation: {
+      'app.title': 'DocFlow',
+      'app.tagline': '사내 통합 워크 플랫폼',
+      'theme.toggle.light': '라이트 모드로 전환',
+      'theme.toggle.dark': '다크 모드로 전환',
+      'nav.home': '홈',
+      'nav.login': '로그인',
+      'nav.healthz': '서버 상태',
+      'route.home.title': '홈',
+      'route.home.body': 'Sprint 1 부트스트랩. 도메인은 다음 스프린트부터.',
+      'route.login.title': '로그인',
+      'route.login.body':
+        '로그인 화면은 Sprint 2(인증)에서 구현됩니다.',
+      'route.healthz.title': '서버 상태',
+      'route.notFound.title': '페이지를 찾을 수 없어요',
+      'route.notFound.body':
+        '요청한 주소가 존재하지 않습니다. 홈으로 돌아가 주세요.',
+      'route.notFound.cta': '홈으로 이동',
+      'healthz.ok': '정상',
+      'healthz.loading': '확인 중…',
+      'healthz.error': '서버 응답이 없어요',
+      'healthz.retry': '다시 시도',
+      'error.INTERNAL_ERROR': '서버 오류가 발생했어요',
+      'error.VALIDATION_FAILED': '입력값을 확인해 주세요',
+      'error.INVALID_REQUEST': '잘못된 요청이에요',
+      'error.UNAUTHENTICATED': '로그인이 필요해요',
+      'error.FORBIDDEN': '권한이 없어요',
+      'error.NOT_FOUND': '대상을 찾을 수 없어요',
+      'error.CONFLICT': '다른 작업과 충돌했어요',
+      'error.RATE_LIMITED': '요청이 너무 많아요. 잠시 후 다시 시도해 주세요',
+      'error.EXTERNAL_SERVICE_ERROR': '외부 시스템에 일시적인 문제가 있어요',
+      'error.INVALID_RESPONSE': '서버 응답 형식이 올바르지 않아요',
+      'error.unknown': '알 수 없는 오류가 발생했어요',
+    },
+  },
+  en: {
+    translation: {
+      'app.title': 'DocFlow',
+      'app.tagline': 'In-house HR & approvals platform',
+      'theme.toggle.light': 'Switch to light mode',
+      'theme.toggle.dark': 'Switch to dark mode',
+      'nav.home': 'Home',
+      'nav.login': 'Sign in',
+      'nav.healthz': 'Server status',
+      'route.home.title': 'Home',
+      'route.home.body':
+        'Sprint 1 bootstrap. Domain features arrive next sprint.',
+      'route.login.title': 'Sign in',
+      'route.login.body':
+        'The sign-in screen ships in Sprint 2 (authentication).',
+      'route.healthz.title': 'Server status',
+      'route.notFound.title': 'Page not found',
+      'route.notFound.body': 'The page you requested does not exist.',
+      'route.notFound.cta': 'Back to home',
+      'healthz.ok': 'OK',
+      'healthz.loading': 'Checking…',
+      'healthz.error': 'No response from server',
+      'healthz.retry': 'Retry',
+      'error.INTERNAL_ERROR': 'Server error occurred',
+      'error.VALIDATION_FAILED': 'Please check your inputs',
+      'error.INVALID_REQUEST': 'Invalid request',
+      'error.UNAUTHENTICATED': 'Sign in required',
+      'error.FORBIDDEN': 'You do not have permission',
+      'error.NOT_FOUND': 'Target not found',
+      'error.CONFLICT': 'The action conflicts with another change',
+      'error.RATE_LIMITED': 'Too many requests. Please retry shortly',
+      'error.EXTERNAL_SERVICE_ERROR': 'An upstream service is unavailable',
+      'error.INVALID_RESPONSE': 'Malformed server response',
+      'error.unknown': 'Unknown error',
+    },
+  },
 } as const;
 
 export type AppLanguage = keyof typeof resources;
-export const supportedLanguages: AppLanguage[] = [];
+
+export const supportedLanguages: AppLanguage[] = ['ko', 'en'];

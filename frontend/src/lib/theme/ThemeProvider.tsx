@@ -1,41 +1,64 @@
-// RED stub — Sprint 1 TDD
-import { createContext, useContext, type ReactNode } from 'react';
-import type { ThemeMode } from './theme';
-
-interface ThemeModeContextValue {
-  mode: ThemeMode;
-  toggle: () => void;
-  setMode: (mode: ThemeMode) => void;
-}
-
-const ThemeModeContext = createContext<ThemeModeContextValue | null>(null);
-
-export const THEME_STORAGE_KEY = 'docflow-theme';
-
-export function detectInitialMode(): ThemeMode {
-  return 'light';
-}
+import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import { detectInitialMode, THEME_STORAGE_KEY } from './storage';
+import { createAppTheme, type ThemeMode } from './theme';
+import {
+  ThemeModeContext,
+  type ThemeModeContextValue,
+} from './useThemeMode';
 
 interface AppThemeProviderProps {
   children: ReactNode;
   initialMode?: ThemeMode;
 }
 
-export function AppThemeProvider({ children }: AppThemeProviderProps) {
-  // TODO(green): real provider w/ MUI theme + persistence
+export function AppThemeProvider({
+  children,
+  initialMode,
+}: AppThemeProviderProps) {
+  const [mode, setModeState] = useState<ThemeMode>(
+    () => initialMode ?? detectInitialMode(),
+  );
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.theme = mode;
+    }
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, mode);
+    } catch {
+      /* ignore quota / sandbox */
+    }
+  }, [mode]);
+
+  const toggle = useCallback(() => {
+    setModeState((m) => (m === 'light' ? 'dark' : 'light'));
+  }, []);
+
+  const setMode = useCallback((next: ThemeMode) => {
+    setModeState(next);
+  }, []);
+
+  const theme = useMemo(() => createAppTheme(mode), [mode]);
+
+  const value = useMemo<ThemeModeContextValue>(
+    () => ({ mode, toggle, setMode }),
+    [mode, toggle, setMode],
+  );
+
   return (
-    <ThemeModeContext.Provider
-      value={{ mode: 'light', toggle: () => {}, setMode: () => {} }}
-    >
-      {children}
+    <ThemeModeContext.Provider value={value}>
+      <MuiThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </MuiThemeProvider>
     </ThemeModeContext.Provider>
   );
-}
-
-export function useThemeMode(): ThemeModeContextValue {
-  const ctx = useContext(ThemeModeContext);
-  if (ctx === null) {
-    throw new Error('useThemeMode must be used inside <AppThemeProvider />');
-  }
-  return ctx;
 }

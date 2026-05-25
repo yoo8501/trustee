@@ -1,4 +1,3 @@
-// RED stub — Sprint 1 TDD
 export interface FieldError {
   field: string;
   reason: string;

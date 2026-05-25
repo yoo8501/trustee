@@ -1,4 +1,3 @@
-// RED stub — Sprint 1 TDD
 import type { FieldError } from './types';
 
 export interface ApiErrorInit {
@@ -10,8 +9,17 @@ export interface ApiErrorInit {
 }
 
 export class ApiError extends Error {
-  // TODO(green): persist init fields on the instance
+  readonly status: number;
+  readonly errorCode?: string;
+  readonly fields?: FieldError[];
+  readonly traceId?: string;
+
   constructor(init: ApiErrorInit) {
     super(init.message);
+    this.name = 'ApiError';
+    this.status = init.status;
+    this.errorCode = init.errorCode;
+    this.fields = init.fields;
+    this.traceId = init.traceId;
   }
 }

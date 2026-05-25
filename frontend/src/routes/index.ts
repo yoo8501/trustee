@@ -1,4 +1,3 @@
-// RED stub — Sprint 1 TDD
 import { createBrowserRouter } from 'react-router';
 import { HealthzRoute } from './healthz';
 import { HomeRoute } from './home';
@@ -10,7 +9,12 @@ export const router = createBrowserRouter([
   {
     path: '/',
     Component: RootLayout,
-    children: [{ index: true, Component: HomeRoute }],
+    children: [
+      { index: true, Component: HomeRoute },
+      { path: 'login', Component: LoginRoute },
+      { path: 'healthz', Component: HealthzRoute },
+      { path: '*', Component: NotFoundRoute },
+    ],
   },
 ]);
 
